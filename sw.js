@@ -5,7 +5,7 @@
 const CACHE_NAME = 'smc-trader-v4';
 const ASSETS = [
   './',
-  './etape6-3-FINAL-v4.html',
+  './index.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png'
@@ -43,7 +43,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         }
         return response;
-      }).catch(() => caches.match('./etape6-3-FINAL-v4.html'));
+      }).catch(() => caches.match('./index.html'));
     })
   );
 });
