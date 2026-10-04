@@ -2,7 +2,7 @@
   "name": "SMC Trader Pro",
   "short_name": "SMC Trader",
   "description": "Trading automatisé Deriv + MT5 · 41 indices · 5 stratégies SMC",
-  "start_url": "./etape6-3-FINAL-v4.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
