@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' wss: https:; img-src 'self' data: https:;">
 <title>SMC Trader Pro v6.3 — FINAL</title>
-
-<!-- ═══ PWA ═══ -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f1419">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -15,7 +13,6 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 :root {
@@ -24,12 +21,7 @@
     --success: #16a34a; --error: #dc2626; --warn: #ea580c; --info: #2563eb;
     --purple: #a855f7; --gold: #fbbf24; --cyan: #06b6d4;
 }
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: var(--bg); color: var(--ink);
-    padding: 1rem 0.7rem 6rem; font-size: 14px; line-height: 1.5;
-    max-width: 900px; margin: 0 auto;
-}
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--ink); padding: 1rem 0.7rem 6rem; font-size: 14px; line-height: 1.5; max-width: 900px; margin: 0 auto; }
 h1 { font-size: 1.2rem; margin-bottom: 0.3rem; }
 .subtitle { font-size: 0.72rem; color: var(--ink-dim); margin-bottom: 1rem; }
 .badge-v { display: inline-block; padding: 0.15rem 0.5rem; background: linear-gradient(135deg, var(--purple), var(--cyan)); color: #fff; border-radius: 6px; font-size: 0.6rem; font-weight: 700; margin-left: 0.3rem; }
@@ -236,7 +228,7 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
     <div class="section">
         <div class="section-title">🎯 Paramètres</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
-            <div><label>Montant ($)</label><input type="number" id="scan-amount" value="5" step="0.5" min="0.5"></div>
+            <div><label>Risque ($)</label><input type="number" id="scan-amount" value="5" step="0.5" min="0.5"></div>
             <div><label>WR min (%)</label><input type="number" id="scan-wr" value="50" step="1" min="40" max="95"></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
@@ -244,7 +236,7 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
             <div><label>Max positions</label><input type="number" id="scan-maxpos" value="5" step="1" min="1"></div>
         </div>
         <div style="font-size:0.68rem;color:#6b7280;margin-top:0.3rem;">
-            ⓘ Tous les signaux valides sont envoyés à MT5 et enregistrés dans le journal
+            ⓘ Le risque ($) est envoyé au bridge MT5 qui calcule le lot exact
         </div>
     </div>
     <div class="section">
@@ -344,7 +336,7 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
         <input type="text" id="cfg-ws-token" placeholder="smc_v5_...">
         <button class="primary small" id="btn-connect-mt5">🔌 Connecter</button>
         <button class="danger small" id="btn-disconnect-mt5">⏹ Déconnecter</button>
-        <button class="info small" id="btn-test-order">🧪 Test ordre 0.01</button>
+        <button class="info small" id="btn-test-order">🧪 Test ordre risque 1$</button>
     </div>
     <div class="section">
         <div class="section-title">📱 Telegram</div>
@@ -439,12 +431,12 @@ const DEFAULTS = {
 };
 
 const STORAGE = {
-    wsUrl: 'smc_v4_ws_url', wsToken: 'smc_v4_ws_token',
-    tgToken: 'smc_v4_tg_token', tgChat: 'smc_v4_tg_chatid',
-    dsKey: 'smc_v4_ds_key', trades: 'smc_v4_trades',
-    signals: 'smc_v4_signals', cache: 'smc_v4_cache',
-    config: 'smc_v4_config', risk: 'smc_v4_risk',
-    scanner: 'smc_v4_scanner', kill: 'smc_v4_kill'
+    wsUrl: 'smc_v5_ws_url', wsToken: 'smc_v5_ws_token',
+    tgToken: 'smc_v5_tg_token', tgChat: 'smc_v5_tg_chatid',
+    dsKey: 'smc_v5_ds_key', trades: 'smc_v5_trades',
+    signals: 'smc_v5_signals', cache: 'smc_v5_cache',
+    config: 'smc_v5_config', risk: 'smc_v5_risk',
+    scanner: 'smc_v5_scanner', kill: 'smc_v5_kill'
 };
 
 const CFG = {
@@ -686,11 +678,20 @@ function handleMT5Message(data) {
             log('🎉 Exécuté ! Ticket ' + data.ticket, 'signal', 'cfg-logs');
             const tradeId = data.request_id ? state.pendingOrders.get(data.request_id) : null;
             if (tradeId) {
-                updateTrade(tradeId, { status: 'open', ticket: data.ticket, openPrice: data.price, openTime: Date.now(), mt5Symbol: data.symbol });
+                updateTrade(tradeId, {
+                    status: 'open',
+                    ticket: data.ticket,
+                    openPrice: data.price,
+                    openTime: Date.now(),
+                    mt5Symbol: data.symbol,
+                    lot: data.volume,
+                    riskReal: data.risk_usd
+                });
                 state.pendingOrders.delete(data.request_id);
                 state.funnel.ordersExecuted++;
                 renderFunnel();
-                notifyTelegram('🟢 *Trade exécuté*\n\n📊 ' + data.symbol + '\n🎫 Ticket : `' + data.ticket + '`\n📈 ' + data.action + ' ' + data.volume + ' lots\n💰 Prix : ' + data.price);
+                log('💰 Lot réel : ' + data.volume + ' (risque ' + (data.risk_usd || '?') + '$)', 'success', 'cfg-logs');
+                notifyTelegram('🟢 *Trade exécuté*\n\n📊 ' + data.symbol + '\n🎫 Ticket : `' + data.ticket + '`\n📈 ' + data.action + ' ' + data.volume + ' lots\n💰 Risque : ' + (data.risk_usd || '?') + '$\n📍 Prix : ' + data.price);
             }
             break;
         }
@@ -727,7 +728,7 @@ function addTrade(trade) {
     state.trades.unshift(trade);
     saveTrades();
     renderJournal();
-    log('📓 Journal : nouveau trade ' + (trade.mt5Symbol || trade.symbol) + ' ' + trade.direction + ' ' + trade.lot + ' lots', 'info', 'j-logs');
+    log('📓 Journal : ' + (trade.mt5Symbol || trade.symbol) + ' ' + trade.direction + ' (risque ' + (trade.riskUSD || '?') + '$)', 'info', 'j-logs');
     return trade;
 }
 function updateTrade(id, updates) {
@@ -1330,7 +1331,7 @@ function checkRiskGuard(config) {
     const dailyPnl = todayTrades.reduce((s, t) => s + (t.profit || 0), 0);
     if (dailyPnl <= -config.riskDaily) return { ok: false, reason: 'DAILY_LOSS_LIMIT' };
     const openTrades = getOpenTrades();
-    const exposure = openTrades.length * config.amount;
+    const exposure = openTrades.reduce((s, t) => s + (t.riskUSD || config.amount), 0);
     if (exposure >= config.riskExposure) return { ok: false, reason: 'MAX_EXPOSURE' };
     if (openTrades.length >= config.maxpos) return { ok: false, reason: 'MAX_POSITIONS' };
     const closed = getClosedTrades().slice(0, 20);
@@ -1348,7 +1349,7 @@ function startScanner() {
     $('btn-scanner-toggle').textContent = '⏹ Arrêter';
     $('btn-scanner-toggle').className = 'small danger';
     localStorage.setItem(STORAGE.scanner, '1');
-    log('🤖 Scanner COMPLET démarré (' + SYMBOLS.length + ' indices)', 'success', 'scan-logs');
+    log('🤖 Scanner démarré (' + SYMBOLS.length + ' indices)', 'success', 'scan-logs');
     runScan();
 }
 function stopScanner() {
@@ -1373,8 +1374,8 @@ async function runScan() {
     renderFunnel();
 
     log('═══════════════════════════════════════', 'info', 'scan-logs');
-    log('🤖 SCAN COMPLET · ' + new Date().toLocaleTimeString('fr-FR') + ' · ' + SYMBOLS.length + ' indices', 'hybrid', 'scan-logs');
-    log('💰 ' + config.amount + '$/trade · WR≥' + config.wr + '% · PF≥' + config.pf, 'data', 'scan-logs');
+    log('🤖 SCAN · ' + new Date().toLocaleTimeString('fr-FR') + ' · ' + SYMBOLS.length + ' indices', 'hybrid', 'scan-logs');
+    log('💰 Risque : ' + config.amount + '$/trade · WR≥' + config.wr + '% · PF≥' + config.pf, 'data', 'scan-logs');
     log('═══════════════════════════════════════', 'info', 'scan-logs');
 
     if (!state.derivConnected) {
@@ -1392,7 +1393,7 @@ async function runScan() {
 
         const currentOpen = getOpenTrades().length;
         if (currentOpen >= config.maxpos) {
-            log('🛑 Max positions atteint (' + currentOpen + '/' + config.maxpos + ') — arrêt du scan', 'warn', 'scan-logs');
+            log('🛑 Max positions atteint (' + currentOpen + '/' + config.maxpos + ') — arrêt', 'warn', 'scan-logs');
             break;
         }
 
@@ -1447,10 +1448,7 @@ async function runScan() {
             if (isCached(fullSetupId)) continue;
 
             const existing = getOpenTrades().find(t => t.symbol === sym.deriv);
-            if (existing) {
-                cacheSetup(fullSetupId);
-                continue;
-            }
+            if (existing) { cacheSetup(fullSetupId); continue; }
 
             const rg2 = checkRiskGuard(config);
             if (!rg2.ok) break;
@@ -1475,28 +1473,42 @@ async function runScan() {
     scheduleNextScan();
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// EXÉCUTION D'ORDRE — ENVOI DU RISQUE EN $ (calcul lot côté bridge MT5)
+// ═══════════════════════════════════════════════════════════════════
 async function executeOrder(sym, setup, stratResults, hybridScore, config) {
     const requestId = 'req_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+
+    // Calcul du SL en "points" (pour info côté bridge — le bridge recalculera)
     const pointSize = 0.01;
     const slPoints = Math.round(setup.risk / pointSize);
-    const tickValue = 0.01;
-    const lot = Math.max(0.01, Math.min(5, config.amount / Math.max(1, slPoints * tickValue)));
-    const finalLot = Math.round(lot / 0.01) * 0.01;
+    const tpPoints = slPoints * 3;
+
     const validStrats = Object.values(stratResults).filter(s => s.valid).map(s => s.name).join(', ');
 
     const trade = addTrade({
         symbol: sym.deriv, mt5Symbol: sym.mt5,
-        direction: setup.direction, lot: finalLot,
+        direction: setup.direction,
+        riskUSD: config.amount,
+        lot: null,
         strategyName: 'HYBRIDE (' + validStrats + ')',
         hybridScore: hybridScore,
-        signalData: { zone: setup.zone, trend: setup.trend, setupId: setup.setupId, stratResults, hasOB: setup.hasOB }
+        signalData: { zone: setup.zone, trend: setup.trend, setupId: setup.setupId, stratResults, hasOB: setup.hasOB, slPoints, tpPoints }
     });
 
     state.pendingOrders.set(requestId, trade.id);
 
     const sent = sendMT5({
-        type: 'open_order', request_id: requestId,
-        order: { symbol: sym.mt5, direction: setup.direction, lot: finalLot, sl_points: slPoints, tp_points: slPoints * 3, comment: 'SMC v6.3 FINAL' }
+        type: 'open_order',
+        request_id: requestId,
+        order: {
+            symbol: sym.mt5,
+            direction: setup.direction,
+            risk_usd: config.amount,
+            sl_points: slPoints,
+            tp_points: tpPoints,
+            comment: 'SMC v6.3 FINAL'
+        }
     });
 
     if (!sent) {
@@ -1507,7 +1519,8 @@ async function executeOrder(sym, setup, stratResults, hybridScore, config) {
 
     state.signals.unshift({
         symbol: sym.deriv, mt5Symbol: sym.mt5,
-        direction: setup.direction, lot: finalLot,
+        direction: setup.direction,
+        riskUSD: config.amount,
         hybridScore: hybridScore,
         strategies: validStrats,
         reason: setup.direction + ' ' + setup.zone + ' (' + setup.trend + ')' + (setup.hasOB ? ' OB' : ' SW'),
@@ -1517,8 +1530,8 @@ async function executeOrder(sym, setup, stratResults, hybridScore, config) {
     saveSignals();
     renderSignals();
 
-    log('🎯 SIGNAL : ' + sym.mt5 + ' ' + setup.direction + ' ' + finalLot + ' lots (score ' + hybridScore + ')', 'hybrid', 'scan-logs');
-    notifyTelegram('🚀 *SIGNAL*\n\n📊 ' + sym.mt5 + '\n📈 ' + setup.direction.toUpperCase() + ' ' + finalLot + ' lots\n🎯 Score : *' + hybridScore + '/100*\n💯 Stratégies : ' + validStrats + '\n🎯 ' + setup.zone + ' / ' + setup.trend + '\n💰 ' + config.amount + '$');
+    log('🎯 SIGNAL : ' + sym.mt5 + ' ' + setup.direction + ' (risque ' + config.amount + '$, score ' + hybridScore + ')', 'hybrid', 'scan-logs');
+    notifyTelegram('🚀 *SIGNAL*\n\n📊 ' + sym.mt5 + '\n📈 ' + setup.direction.toUpperCase() + '\n💰 Risque : *' + config.amount + '$*\n🎯 Score : *' + hybridScore + '/100*\n💯 Stratégies : ' + validStrats);
     return true;
 }
 
@@ -1561,7 +1574,7 @@ function renderSignals() {
             '<div class="trade-header"><span class="trade-symbol">' + escapeHtml(s.symbol) + '</span><span class="trade-badge signal">' + escapeHtml(s.direction.toUpperCase()) + '</span></div>' +
             '<div class="trade-info">' +
                 '<div><div class="label">Score</div><div class="value" style="color:#a855f7;">' + (s.hybridScore || '—') + '</div></div>' +
-                '<div><div class="label">Lot</div><div class="value">' + s.lot + '</div></div>' +
+                '<div><div class="label">Risque</div><div class="value">' + (s.riskUSD || '—') + '$</div></div>' +
                 '<div><div class="label">Zone</div><div class="value">' + (s.reason ? s.reason.split(' ')[1] : '—') + '</div></div>' +
                 '<div><div class="label">Heure</div><div class="value">' + new Date(s.time).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) + '</div></div>' +
             '</div>' +
@@ -1588,16 +1601,22 @@ function renderTradeCard(t) {
     const statusLabel = t.status === 'open' ? '🟢 OUVERT' : t.status === 'sent' ? '🟠 ENVOYÉ' : t.status === 'pending' ? '⏳ EN ATTENTE' : t.status === 'rejected' ? '❌ REJETÉ' : t.result === 'win' ? '✅ GAGNÉ' : t.result === 'loss' ? '❌ PERDU' : '⚪ CLÔTURÉ';
     const profit = t.profit != null ? (t.profit >= 0 ? '+' : '') + t.profit.toFixed(2) + ' $' : '—';
     const profitColor = t.profit > 0 ? '#16a34a' : t.profit < 0 ? '#dc2626' : '#9ca3af';
+    const riskInfo = t.riskUSD ? t.riskUSD + '$' : '—';
+    const lotInfo = t.lot != null ? t.lot : '—';
     return '<div class="trade-card ' + statusClass + '">' +
         '<div class="trade-header"><span class="trade-symbol">' + escapeHtml(t.mt5Symbol || t.symbol) + '</span><span class="trade-badge ' + dirClass + '">' + dirLabel + '</span></div>' +
         '<div class="trade-info">' +
             '<div><div class="label">Ticket</div><div class="value">' + (t.ticket || '—') + '</div></div>' +
             '<div><div class="label">Statut</div><div class="value">' + statusLabel + '</div></div>' +
-            '<div><div class="label">Lot</div><div class="value">' + (t.lot || '0.01') + '</div></div>' +
-            '<div><div class="label">P&L</div><div class="value" style="color:' + profitColor + '">' + profit + '</div></div>' +
+            '<div><div class="label">Risque</div><div class="value">' + riskInfo + '</div></div>' +
+            '<div><div class="label">Lot réel</div><div class="value">' + lotInfo + '</div></div>' +
         '</div>' +
-        '<div class="trade-footer"><span>' + escapeHtml(t.strategyName || '—') + '</span><span>' + new Date(t.createdAt).toLocaleString('fr-FR') + '</span></div>' +
-        (t.hybridScore ? '<div style="font-size:0.68rem;color:#a855f7;margin-top:0.2rem;">Score hybride : ' + t.hybridScore + '/100</div>' : '') +
+        '<div class="trade-info" style="margin-top:0.3rem;">' +
+            '<div><div class="label">P&L</div><div class="value" style="color:' + profitColor + '">' + profit + '</div></div>' +
+            '<div style="grid-column: span 3;"><div class="label">Stratégie</div><div class="value">' + escapeHtml(t.strategyName || '—') + '</div></div>' +
+        '</div>' +
+        '<div class="trade-footer"><span>' + new Date(t.createdAt).toLocaleString('fr-FR') + '</span>' +
+        (t.hybridScore ? '<span style="color:#a855f7;">Score ' + t.hybridScore + '/100</span>' : '') + '</div>' +
         (t.error ? '<div style="color:#fca5a5;font-size:0.7rem;margin-top:0.3rem;">⚠️ ' + escapeHtml(t.error) + '</div>' : '') +
         (t.audit ? '<div style="background:#1a2028;border-radius:6px;padding:0.6rem;margin-top:0.5rem;font-size:0.7rem;white-space:pre-wrap;color:#93c5fd;">🧠 ' + escapeHtml(t.audit) + '</div>' : '') +
     '</div>';
@@ -1656,7 +1675,7 @@ function renderRiskGuard() {
     if (r.ok) {
         $('rg-daily').textContent = (r.dailyPnl >= 0 ? '+' : '') + r.dailyPnl.toFixed(2) + '$';
         $('rg-daily').className = 'stat-value ' + (r.dailyPnl >= 0 ? 'green' : 'red');
-        $('rg-exposure').textContent = r.exposure + '$';
+        $('rg-exposure').textContent = r.exposure.toFixed(2) + '$';
         $('rg-status').textContent = '✅ OK';
         $('rg-status').className = 'stat-value green';
     } else {
@@ -1863,9 +1882,9 @@ function bindEvents() {
         const requestId = 'test_' + Date.now();
         sendMT5({
             type: 'open_order', request_id: requestId,
-            order: { symbol: 'Volatility 75 Index', direction: 'buy', lot: 0.01, sl_points: 0, tp_points: 0, comment: 'SMC TEST' }
+            order: { symbol: 'Volatility 75 Index', direction: 'buy', risk_usd: 1, sl_points: 500, tp_points: 1500, comment: 'SMC TEST' }
         });
-        log('🧪 Test ordre envoyé (0.01 lot R_75)', 'info', 'cfg-logs');
+        log('🧪 Test ordre envoyé (risque 1$)', 'info', 'cfg-logs');
     });
     $('btn-export').addEventListener('click', () => {
         const data = JSON.stringify({ trades: state.trades, signals: state.signals, version: 'v6.3-final', exportDate: new Date().toISOString() }, null, 2);
@@ -1905,7 +1924,7 @@ function init() {
     renderRiskGuard();
     log('🚀 SMC Trader Pro v6.3 FINAL', 'hybrid');
     log('📋 ' + SYMBOLS.length + ' indices · 5 stratégies + SMC unifié', 'hybrid');
-    log('🎯 Scanner COMPLET : tous les signaux valides sont envoyés', 'hybrid');
+    log('💰 Mode RISQUE ($) — le bridge MT5 calcule le lot exact', 'hybrid');
     log('🔬 4 bugs critiques corrigés + moteur SMC assoupli', 'success');
     setDerivStatus('', 'Déconnecté', 'Prêt');
     setMT5Status('', 'Déconnecté', 'Configuration requise');
@@ -1915,11 +1934,10 @@ function init() {
     if (localStorage.getItem(STORAGE.scanner) === '1') {
         setTimeout(() => { if (state.mt5Connected) startScanner(); }, 3000);
     }
-    // ─── PWA Service Worker ───
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js')
-                .then((reg) => console.log('✅ Service Worker enregistré', reg.scope))
+                .then((reg) => console.log('✅ SW enregistré', reg.scope))
                 .catch((e) => console.warn('⚠️ SW erreur:', e));
         });
     }
