@@ -236,7 +236,7 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
 <div class="tab-panel" id="panel-scanner">
     <div class="section">
         <div class="section-title">
-            <span>🤖 Scanner hybride</span>
+            <span>🤖 Scanner hybride (AUTO)</span>
             <button class="small primary" id="btn-scanner-toggle">▶️ Démarrer</button>
         </div>
         <div class="stats">
@@ -247,9 +247,9 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
         </div>
     </div>
     <div class="section">
-        <div class="section-title">🎯 Paramètres</div>
+        <div class="section-title">🎯 Paramètres (utilisés par Analyse + Scanner)</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
-            <div><label>Risque ($)</label><input type="number" id="scan-amount" value="1" step="0.5" min="0.5"></div>
+            <div><label>Risque ($)</label><input type="number" id="scan-amount" value="5" step="0.5" min="0.5"></div>
             <div><label>WR min (%)</label><input type="number" id="scan-wr" value="40" step="1" min="40" max="95"></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
@@ -257,7 +257,7 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
             <div><label>Max positions</label><input type="number" id="scan-maxpos" value="5" step="1" min="1"></div>
         </div>
         <div style="font-size:0.68rem;color:#6b7280;margin-top:0.3rem;">
-            ⓘ Le risque ($) est envoyé au bridge MT5 qui calcule le lot exact
+            ⓘ Le risque ($) est utilisé par l'Analyse (semi-auto) et le Scanner (auto)
         </div>
     </div>
     <div class="section">
@@ -358,7 +358,7 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
         <input type="text" id="cfg-ws-token" placeholder="smc_v5_...">
         <button class="primary small" id="btn-connect-mt5">🔌 Connecter</button>
         <button class="danger small" id="btn-disconnect-mt5">⏹ Déconnecter</button>
-        <button class="info small" id="btn-test-order">🧪 Test ordre risque 1$</button>
+        <button class="info small" id="btn-test-order">🧪 Test ordre 5$</button>
     </div>
     <div class="section">
         <div class="section-title">📱 Telegram</div>
@@ -386,7 +386,7 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
 </div>
 <script>
 // ═══════════════════════════════════════════════════════════════════
-// PARTIE 2/3 — CONFIG + STATE + DERIV + MT5
+// PARTIE 2/3 — CONFIG + STATE + DERIV + MT5 + SUIVI TEMPS RÉEL
 // ═══════════════════════════════════════════════════════════════════
 
 const SYMBOLS = [
@@ -444,9 +444,8 @@ const FAMILIES = {
     bull_bear: { name: '🐂🐻 Bull/Bear', indices: ['RDBULL', 'RDBEAR'] }
 };
 
-// ⚠️ CLÉS PRÉSENTES DANS LE CODE (repo privé)
 const DEFAULTS = {
-    wsUrl: 'wss://edward-paxil-tablet-impression.trycloudflare.com',
+    wsUrl: 'wss://related-plot-jul-bench.trycloudflare.com',
     wsToken: 'smc_v5_MonTokenSecret_2026_xK9pL3mNqR7vT5',
     tgToken: '8877106520:AAGlWDTxbVlKF7bWsh403-CdP2TwW_7fvtY',
     tgChat: '5814233227',
@@ -454,12 +453,12 @@ const DEFAULTS = {
 };
 
 const STORAGE = {
-    wsUrl: 'smc_v8_ws_url', wsToken: 'smc_v8_ws_token',
-    tgToken: 'smc_v8_tg_token', tgChat: 'smc_v8_tg_chatid',
-    dsKey: 'smc_v8_ds_key', trades: 'smc_v8_trades',
-    signals: 'smc_v8_signals', cache: 'smc_v8_cache',
-    config: 'smc_v8_config', risk: 'smc_v8_risk',
-    scanner: 'smc_v8_scanner', kill: 'smc_v8_kill'
+    wsUrl: 'smc_v9_ws_url', wsToken: 'smc_v9_ws_token',
+    tgToken: 'smc_v9_tg_token', tgChat: 'smc_v9_tg_chatid',
+    dsKey: 'smc_v9_ds_key', trades: 'smc_v9_trades',
+    signals: 'smc_v9_signals', cache: 'smc_v9_cache',
+    config: 'smc_v9_config', risk: 'smc_v9_risk',
+    scanner: 'smc_v9_scanner', kill: 'smc_v9_kill'
 };
 
 const CFG = {
@@ -576,7 +575,7 @@ function saveConfig() {
     localStorage.setItem(STORAGE.tgChat, $('cfg-tg-chatid').value.trim());
     localStorage.setItem(STORAGE.dsKey, $('cfg-ds-key').value.trim());
     localStorage.setItem(STORAGE.config, JSON.stringify({
-        amount: parseFloat($('scan-amount').value) || 1,
+        amount: parseFloat($('scan-amount').value) || 5,
         wr: parseInt($('scan-wr').value) || 40,
         pf: parseFloat($('scan-pf').value) || 0.5,
         maxpos: parseInt($('scan-maxpos').value) || 5
@@ -592,7 +591,7 @@ function saveRisk() {
 }
 function getConfig() {
     return {
-        amount: parseFloat($('scan-amount').value) || 1,
+        amount: parseFloat($('scan-amount').value) || 5,
         wr: parseInt($('scan-wr').value) || 40,
         pf: parseFloat($('scan-pf').value) || 0.5,
         maxpos: parseInt($('scan-maxpos').value) || 5,
@@ -992,7 +991,6 @@ async function connectDerivData() {
                         setDerivStatus('', 'Déconnecté', 'Code fermeture');
                         for (const p of state.derivPending.values()) p.reject(new Error('Deriv disconnected'));
                         state.derivPending.clear();
-                        // Réinitialiser les abonnements
                         for (const [key, t] of state.trackingTicks.entries()) {
                             t.subscribed = false;
                             state.trackingTicks.set(key, t);
@@ -1093,7 +1091,7 @@ function initSymbolSelects() {
 </script>
 <script>
 // ═══════════════════════════════════════════════════════════════════
-// PARTIE 3/3 — INDICATEURS + STRATÉGIES + SMC + SCANNER + ANALYSE + INIT
+// PARTIE 3/3 — INDICATEURS + STRATÉGIES + SMC + ANALYSE SEMI-AUTO + SCANNER AUTO + INIT
 // ═══════════════════════════════════════════════════════════════════
 
 function calculateATR(candles, period = 14) {
@@ -1538,7 +1536,7 @@ function startScanner() {
     $('btn-scanner-toggle').textContent = '⏹ Arrêter';
     $('btn-scanner-toggle').className = 'small danger';
     localStorage.setItem(STORAGE.scanner, '1');
-    log('🤖 Scanner démarré', 'success', 'scan-logs');
+    log('🤖 Scanner démarré (AUTO)', 'success', 'scan-logs');
     runScan();
 }
 function stopScanner() {
@@ -1562,7 +1560,7 @@ async function runScan() {
     state.funnel = { total: SYMBOLS.length, dataOK: 0, strat1OK: 0, strat2OK: 0, strat3OK: 0, strat4OK: 0, strat5OK: 0, unifiedOK: 0, hybridOK: 0, riskOK: 0, ordersSent: 0, ordersExecuted: 0 };
     renderFunnel();
     log('═══════════════════════════════════════', 'info', 'scan-logs');
-    log('🤖 SCAN · ' + SYMBOLS.length + ' indices', 'hybrid', 'scan-logs');
+    log('🤖 SCAN AUTO · ' + SYMBOLS.length + ' indices', 'hybrid', 'scan-logs');
     log('💰 Risque : ' + config.amount + '$ · WR≥' + config.wr + '% · PF≥' + config.pf, 'data', 'scan-logs');
     log('═══════════════════════════════════════', 'info', 'scan-logs');
 
@@ -1648,10 +1646,10 @@ async function executeOrder(sym, setup, stratResults, hybridScore, config) {
         direction: setup.direction,
         riskUSD: config.amount,
         lot: null,
-        strategyName: 'HYBRIDE (' + validStrats + ')',
+        strategyName: 'AUTO (' + validStrats + ')',
         hybridScore: hybridScore,
         entryPrice: setup.entry, slPrice: setup.sl, tpPrice: setup.tp,
-        signalData: { zone: setup.zone, trend: setup.trend, setupId: setup.setupId, stratResults, hasOB: setup.hasOB, slPoints, tpPoints }
+        signalData: { zone: setup.zone, trend: setup.trend, setupId: setup.setupId, stratResults, hasOB: setup.hasOB, slPoints, tpPoints, source: 'scanner-auto' }
     });
     state.pendingOrders.set(requestId, trade.id);
     const sent = sendMT5({
@@ -1677,8 +1675,8 @@ async function executeOrder(sym, setup, stratResults, hybridScore, config) {
     state.signals = state.signals.slice(0, 30);
     saveSignals();
     renderSignals();
-    log('🎯 SIGNAL : ' + sym.mt5 + ' ' + setup.direction + ' (score ' + hybridScore + ')', 'hybrid', 'scan-logs');
-    notifyTelegram('🚀 *SIGNAL*\n\n📊 ' + sym.mt5 + '\n📈 ' + setup.direction.toUpperCase() + '\n💰 ' + config.amount + '$\n🎯 Score : ' + hybridScore + '/100');
+    log('🎯 SCANNER AUTO : ' + sym.mt5 + ' ' + setup.direction + ' (score ' + hybridScore + ')', 'hybrid', 'scan-logs');
+    notifyTelegram('🤖 *SCANNER AUTO*\n\n📊 ' + sym.mt5 + '\n📈 ' + setup.direction.toUpperCase() + '\n💰 ' + config.amount + '$\n🎯 Score : ' + hybridScore + '/100');
     return true;
 }
 
@@ -1866,7 +1864,7 @@ function renderRiskGuard() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// ANALYSE AVEC BOUTONS D'ENVOI MANUEL À MT5
+// ANALYSE SEMI-AUTO — POPUP DE CONFIRMATION
 // ═══════════════════════════════════════════════════════════════════
 async function runAnalyse() {
     const symbol = $('analyse-symbol').value;
@@ -1905,7 +1903,6 @@ async function runAnalyse() {
             if (valid) validCount++;
         }
 
-        // ═══ AFFICHAGE DU SIGNAL + BOUTONS D'ENVOI ═══
         if (debug.hasSignal) {
             const setup = debug.setup;
             const validStrats = Object.values(stratResults).filter(s => s.valid);
@@ -1922,8 +1919,9 @@ async function runAnalyse() {
                 hybridScore, stratResults, validStrats: validStrats.map(s => s.name).join(', ')
             };
             const okStrats = validStrats.length > 0
-                ? '✅ ' + validStrats.length + '/5 stratégies valides (' + validStrats.map(s => s.name).join(', ') + ')'
+                ? '✅ ' + validStrats.length + '/5 stratégies valides'
                 : '⏸ 0/5 stratégies valides';
+
             $('analyse-signal').innerHTML =
                 '<div class="trade-card pending" style="border-left-color:' + (validStrats.length > 0 ? '#16a34a' : '#ea580c') + ';">' +
                     '<div class="trade-header"><span class="trade-symbol">' + escapeHtml(symbol) + '</span><span class="trade-badge signal">' + setup.direction.toUpperCase() + '</span></div>' +
@@ -1941,29 +1939,22 @@ async function runAnalyse() {
                     '</div>' +
                     '<div style="font-size:0.68rem;color:#06b6d4;margin-top:0.4rem;">' + escapeHtml(okStrats) + '</div>' +
                     '<div style="font-size:0.68rem;color:#93c5fd;margin-top:0.2rem;">Tendance : ' + setup.trend + '</div>' +
-                    '<div style="margin-top:0.7rem;display:grid;grid-template-columns:1fr 1fr;gap:0.3rem;">' +
-                        '<button class="primary" id="btn-send-analyse" style="width:100%;font-size:0.75rem;padding:0.7rem;">📤 Envoyer à MT5</button>' +
-                        '<button class="info" id="btn-send-analyse-custom" style="width:100%;font-size:0.75rem;padding:0.7rem;">💰 Risque perso</button>' +
-                    '</div>' +
                 '</div>';
-            const btnSend = $('btn-send-analyse');
-            if (btnSend) btnSend.addEventListener('click', () => sendAnalyseOrder(getConfig().amount));
-            const btnCustom = $('btn-send-analyse-custom');
-            if (btnCustom) btnCustom.addEventListener('click', () => {
-                const val = prompt('Risque en $ pour ce trade :', getConfig().amount);
-                if (val === null) return;
-                const risk = parseFloat(val);
-                if (isNaN(risk) || risk <= 0) { alert('Risque invalide'); return; }
-                sendAnalyseOrder(risk);
-            });
+
             log('🎯 Signal SMC : ' + setup.direction + ' ' + setup.zone + ' — score ' + hybridScore, 'signal');
-            log('💡 Clique sur "📤 Envoyer à MT5" pour exécuter ce trade', 'info');
+
+            // ═══ POPUP AUTOMATIQUE (si score ≥ WR min) ═══
+            if (hybridScore >= config.wr) {
+                log('💡 Score ' + hybridScore + ' ≥ ' + config.wr + '% → Popup de confirmation', 'info');
+                setTimeout(() => askConfirmSignal(symbol, setup, hybridScore, config, slPoints, tpPoints, validStrats), 500);
+            } else {
+                log('⏸ Score ' + hybridScore + ' < ' + config.wr + '% → pas de popup', 'warn');
+            }
         } else {
             $('analyse-signal').innerHTML = renderSmcDebug(debug);
             log('⏸ Pas de signal sur ' + symbol + ' — ' + debug.reason, 'warn');
         }
 
-        // Tableau des 5 stratégies
         let html = '<div style="display:grid;grid-template-columns:auto 1fr auto auto auto;gap:0.5rem;font-size:0.65rem;padding:0.4rem 0.6rem;background:#0a0f14;border-radius:6px;margin-bottom:0.4rem;font-family:ui-monospace,monospace;">' +
             '<span>#</span><span>Stratégie</span><span>WR</span><span>PF</span><span>Trades</span></div>';
         for (let i = 0; i < STRATEGIES.length; i++) {
@@ -1980,18 +1971,39 @@ async function runAnalyse() {
         }
         html += '<div style="font-size:0.7rem;color:#9ca3af;margin-top:0.5rem;">' + validCount + '/5 stratégies valides</div>';
         $('analyse-strategies').innerHTML = html;
-        log('📊 5 stratégies : ' + validCount + '/5 valides', validCount > 0 ? 'success' : 'warn');
     } catch (e) {
         log('❌ ' + e.message, 'error');
     }
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// ENVOI MANUEL D'UN SIGNAL D'ANALYSE À MT5
+// POPUP DE CONFIRMATION POUR ANALYSE
 // ═══════════════════════════════════════════════════════════════════
-async function sendAnalyseOrder(riskUSD) {
-    const sig = window._currentAnalyseSignal;
-    if (!sig) { log('❌ Aucun signal actif', 'error'); return; }
+function askConfirmSignal(symbol, setup, score, config, slPoints, tpPoints, validStrats) {
+    const symObj = SYMBOLS.find(s => s.deriv === symbol);
+    const mt5Name = symObj ? symObj.mt5 : symbol;
+    const risk = config.amount;
+
+    const msg =
+        '🎯 SIGNAL DÉTECTÉ\n\n' +
+        '📊 ' + mt5Name + '\n' +
+        '📈 ' + setup.direction.toUpperCase() + '\n' +
+        '💰 Risque : ' + risk + '$\n' +
+        '🎯 SL : ' + slPoints + ' pts\n' +
+        '🎯 TP : ' + tpPoints + ' pts (RR 1:3)\n' +
+        '💯 Score : ' + score + '/100\n' +
+        '✅ Stratégies : ' + validStrats.length + '/5\n' +
+        '🎯 Zone : ' + setup.zone + ' · Tendance : ' + setup.trend + '\n\n' +
+        '📤 ENVOYER À MT5 ?';
+
+    if (confirm(msg)) {
+        sendAnalyseOrder(symbol, setup, score, risk, slPoints, tpPoints, validStrats);
+    } else {
+        log('❌ Envoi annulé par l\'utilisateur', 'warn');
+    }
+}
+
+async function sendAnalyseOrder(symbol, setup, score, riskUSD, slPoints, tpPoints, validStrats) {
     if (!state.mt5Connected) {
         log('❌ Bridge MT5 non connecté', 'error');
         alert('❌ Bridge MT5 non connecté. Va dans Tab Config et connecte-le.');
@@ -2008,30 +2020,34 @@ async function sendAnalyseOrder(riskUSD) {
         alert('⚠️ Max positions atteint (' + openTrades.length + '/' + config.maxpos + ')');
         return;
     }
-    const existing = openTrades.find(t => t.symbol === sig.symbol);
-    if (existing) {
-        if (!confirm('⚠️ Position déjà ouverte sur ' + sig.symbol + '. Envoyer quand même ?')) return;
-    }
-    const msg = '📤 ENVOYER À MT5 ?\n\n📊 ' + sig.symbolMT5 + '\n📈 ' + sig.direction.toUpperCase() + '\n💰 Risque : ' + riskUSD + '$\n🎯 SL : ' + sig.slPoints + ' pts\n🎯 TP : ' + sig.tpPoints + ' pts (RR 1:3)\n💯 Score : ' + sig.hybridScore + '/100\n📊 Stratégies : ' + (sig.validStrats || 'aucune') + '\n\nConfirmer ?';
-    if (!confirm(msg)) return;
 
-    log('📤 Envoi manuel : ' + sig.symbolMT5 + ' ' + sig.direction + ' (risque ' + riskUSD + '$)', 'signal');
+    const symObj = SYMBOLS.find(s => s.deriv === symbol);
+    const mt5Name = symObj ? symObj.mt5 : symbol;
     const requestId = 'req_analyse_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+
     const trade = addTrade({
-        symbol: sig.symbol, mt5Symbol: sig.symbolMT5,
-        direction: sig.direction, riskUSD: riskUSD, lot: null,
-        strategyName: 'ANALYSE MANUELLE (score ' + sig.hybridScore + ')',
-        hybridScore: sig.hybridScore,
-        entryPrice: sig.entry, slPrice: sig.sl, tpPrice: sig.tp,
-        signalData: { zone: sig.zone, trend: sig.trend, hasOB: sig.hasOB, slPoints: sig.slPoints, tpPoints: sig.tpPoints, source: 'analyse-manuelle' }
+        symbol: symbol,
+        mt5Symbol: mt5Name,
+        direction: setup.direction,
+        riskUSD: riskUSD,
+        lot: null,
+        strategyName: 'ANALYSE SEMI-AUTO (' + (validStrats.length || 0) + '/5)',
+        hybridScore: score,
+        entryPrice: setup.entry,
+        slPrice: setup.sl,
+        tpPrice: setup.tp,
+        signalData: { zone: setup.zone, trend: setup.trend, hasOB: setup.hasOB, slPoints: slPoints, tpPoints: tpPoints, source: 'analyse-semi-auto' }
     });
     state.pendingOrders.set(requestId, trade.id);
+
+    log('📤 Envoi manuel : ' + mt5Name + ' ' + setup.direction + ' (risque ' + riskUSD + '$)', 'signal');
+
     const sent = sendMT5({
         type: 'open_order', request_id: requestId,
         order: {
-            symbol: sig.symbolMT5, direction: sig.direction,
-            risk_usd: riskUSD, sl_points: sig.slPoints, tp_points: sig.tpPoints,
-            comment: 'SMC MANUEL'
+            symbol: mt5Name, direction: setup.direction,
+            risk_usd: riskUSD, sl_points: slPoints, tp_points: tpPoints,
+            comment: 'SMC SEMI-AUTO'
         }
     });
     if (!sent) {
@@ -2042,18 +2058,17 @@ async function sendAnalyseOrder(riskUSD) {
         return;
     }
     state.signals.unshift({
-        symbol: sig.symbol, mt5Symbol: sig.symbolMT5,
-        direction: sig.direction, riskUSD: riskUSD, hybridScore: sig.hybridScore,
-        strategies: sig.validStrats,
-        reason: sig.direction + ' ' + sig.zone + ' — MANUEL',
+        symbol: symbol, mt5Symbol: mt5Name,
+        direction: setup.direction, riskUSD: riskUSD, hybridScore: score,
+        strategies: validStrats.map(s => s.name).join(', '),
+        reason: setup.direction + ' ' + setup.zone + ' — SEMI-AUTO',
         time: Date.now()
     });
     state.signals = state.signals.slice(0, 30);
     saveSignals();
     renderSignals();
-    notifyTelegram('📤 *ORDRE MANUEL*\n\n📊 ' + sig.symbolMT5 + '\n📈 ' + sig.direction.toUpperCase() + '\n💰 ' + riskUSD + '$\n🎯 Score : ' + sig.hybridScore + '/100');
+    notifyTelegram('📤 *ORDRE SEMI-AUTO*\n\n📊 ' + mt5Name + '\n📈 ' + setup.direction.toUpperCase() + '\n💰 ' + riskUSD + '$\n🎯 Score : ' + score + '/100');
     log('✅ Ordre envoyé à MT5 — voir Journal', 'success');
-    alert('✅ Ordre envoyé à MT5 !\n\nVa dans le Tab Journal.');
 }
 
 function drawCandles(canvasId, candles) {
@@ -2161,18 +2176,19 @@ function bindEvents() {
     });
     $('btn-test-order').addEventListener('click', () => {
         if (!state.mt5Connected) { log('⚠️ MT5 non connecté', 'warn', 'cfg-logs'); return; }
+        const risk = getConfig().amount;
         const requestId = 'test_' + Date.now();
         sendMT5({
             type: 'open_order', request_id: requestId,
-            order: { symbol: 'Volatility 75 Index', direction: 'buy', risk_usd: 1, sl_points: 500, tp_points: 1500, comment: 'SMC TEST' }
+            order: { symbol: 'Volatility 75 Index', direction: 'buy', risk_usd: risk, sl_points: 500, tp_points: 1500, comment: 'SMC TEST' }
         });
-        log('🧪 Test ordre envoyé (1$)', 'info', 'cfg-logs');
+        log('🧪 Test ordre envoyé (risque ' + risk + '$)', 'info', 'cfg-logs');
     });
     $('btn-export').addEventListener('click', () => {
-        const data = JSON.stringify({ trades: state.trades, signals: state.signals, version: 'v8-manual', exportDate: new Date().toISOString() }, null, 2);
+        const data = JSON.stringify({ trades: state.trades, signals: state.signals, version: 'v9-semi-auto', exportDate: new Date().toISOString() }, null, 2);
         const blob = new Blob([data], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = 'smc-manual-' + Date.now() + '.json'; a.click();
+        const a = document.createElement('a'); a.href = url; a.download = 'smc-semi-auto-' + Date.now() + '.json'; a.click();
         URL.revokeObjectURL(url);
         log('📤 Export OK', 'success', 'cfg-logs');
     });
@@ -2205,9 +2221,11 @@ function init() {
     renderScannerStats();
     renderFunnel();
     renderRiskGuard();
-    log('🚀 SMC Trader Pro v6.3', 'hybrid');
+    log('🚀 SMC Trader Pro v9 SEMI-AUTO', 'hybrid');
     log('📋 ' + SYMBOLS.length + ' indices · Suivi temps réel', 'hybrid');
-    log('📤 Envoi MANUEL depuis Analyse + AUTO depuis Scanner', 'hybrid');
+    log('📊 Analyse : SEMI-AUTO (popup si score ≥ WR min)', 'hybrid');
+    log('🤖 Scanner : AUTO (envoi direct)', 'hybrid');
+    log('💰 Risque : ' + ($('scan-amount').value || 5) + '$ (utilisé partout)', 'hybrid');
     setDerivStatus('', 'Déconnecté', 'Prêt');
     setMT5Status('', 'Déconnecté', 'Configuration requise');
     window.addEventListener('load', () => {
