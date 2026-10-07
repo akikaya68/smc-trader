@@ -606,11 +606,14 @@ function handleMT5Message(data) {
             t.tick_size = Number(data.tick_size) || null; t.tick_value = Number(data.tick_value) || null;
             t.volume_min = Number(data.volume_min) || null; t.volume_max = Number(data.volume_max) || null; t.volume_step = Number(data.volume_step) || null;
             t.time = data.time; t.subscribed = true;
-            state.trackingTicks.set(tickData.symbol, t); state.pendingTicks.delete(data.request_id);
+            state.trackingTicks.set(tickData.symbol, t);
+            // Résoudre la promesse si elle existe
+            if (tickData.resolve) tickData.resolve(t);
+            state.pendingTicks.delete(data.request_id);
         }
         return;
     }
-    if (type === 'tick_error') { state.pendingTicks.delete(data.request_id); return; }
+    if (type === 'tick_error') { const tickData = state.pendingTicks.get(data.request_id); if (tickData && tickData.reject) tickData.reject(new Error(data.error || 'Erreur get_tick')); state.pendingTicks.delete(data.request_id); return; }
     if (type === 'candles_result') { const cb = state.pendingCandles.get(data.request_id); if (cb) { cb.resolve(normalizeCandles(data.candles || [])); state.pendingCandles.delete(data.request_id); } return; }
     if (type === 'candles_error') { const cb = state.pendingCandles.get(data.request_id); if (cb) { cb.reject(new Error(data.error || 'Erreur get_candles')); state.pendingCandles.delete(data.request_id); } return; }
     if (type === 'get_positions') { handlePositionsResponse(data); return; }
@@ -1348,7 +1351,6 @@ function bindEvents() {
     $('btn-save-risk').addEventListener('click', () => { saveRisk(); renderRiskGuard(); log('💾 Risk sauvegardé', 'success', 'cfg-logs'); });
     $('btn-kill-switch').addEventListener('click', () => { if (!confirm('Activer KILL SWITCH ?')) return; state.killSwitch = true; saveKillSwitch(); renderRiskGuard(); log('🚨 KILL SWITCH', 'error', 'cfg-logs'); if (state.mt5Connected) sendMT5({ type: 'kill_switch', activate: true, reason: 'Manuel' }); });
     $('btn-reset-kill').addEventListener('click', () => { state.killSwitch = false; saveKillSwitch(); renderRiskGuard(); log('♻️ Kill désactivé', 'success', 'cfg-logs'); if (state.mt5Connected) sendMT5({ type: 'kill_switch', activate: false }); });
-    $('btn-test-order').addEventListener('click', () => { log('🧪 Test ordre désactivé en V11 : aucun ordre aveugle avec points fixes.', 'warn', 'cfg-logs'); });
     $('btn-export').addEventListener('click', () => {
         const data = JSON.stringify({ trades: state.trades, signals: state.signals, version: 'v11', exportDate: new Date().toISOString() }, null, 2);
         const blob = new Blob([data], { type: 'application/json' });
@@ -1357,6 +1359,105 @@ function bindEvents() {
         URL.revokeObjectURL(url); log('📤 Export OK', 'success', 'cfg-logs');
     });
     $('btn-clear').addEventListener('click', () => { if (!confirm('Effacer TOUT ?')) return; state.trades = []; state.signals = []; state.signalCache = {}; saveTrades(); saveSignals(); saveCache(); renderJournal(); renderSignals(); renderScannerStats(); renderFunnel(); log('🗑️ Effacé', 'warn', 'cfg-logs'); });
+
+    // ═════════════════════════════════════════════════════════════════
+    // BOUTON TEST ORDRE 5$ — FONCTIONNEL (XAUUSD par défaut)
+    // ═════════════════════════════════════════════════════════════════
+    $('btn-test-order').addEventListener('click', async () => {
+        const symbolMT5 = $('analyse-symbol').value;
+        if (!symbolMT5) { log('❌ Sélectionnez un symbole dans Analyse', 'error', 'cfg-logs'); return; }
+        if (!state.mt5Connected) { log('❌ Bridge MT5 non connecté', 'error', 'cfg-logs'); return; }
+
+        log('🧪 Test ordre 5$ sur ' + symbolMT5, 'info', 'cfg-logs');
+        log('⏳ Récupération du prix et des bougies…', 'info', 'cfg-logs');
+
+        try {
+            const tick = await requestTick(symbolMT5);
+            const ask = parseFloat(tick.ask);
+            const bid = parseFloat(tick.bid);
+            const point = parseFloat(tick.point);
+            const tickValue = parseFloat(tick.tick_value);
+            const tickSize = parseFloat(tick.tick_size);
+            const digits = parseInt(tick.digits);
+            const vmin = parseFloat(tick.volume_min) || 0.01;
+            const vmax = parseFloat(tick.volume_max) || 100;
+            const vstep = parseFloat(tick.volume_step) || 0.01;
+
+            if (!Number.isFinite(ask) || !Number.isFinite(bid)) {
+                log('❌ Prix invalide reçu', 'error', 'cfg-logs'); return;
+            }
+            log('💰 Prix : bid=' + bid.toFixed(digits) + ' ask=' + ask.toFixed(digits), 'data', 'cfg-logs');
+
+            const candles = await requestCandles(symbolMT5, 'M5', 100);
+            if (!candles || candles.length < 20) { log('❌ Pas assez de bougies', 'error', 'cfg-logs'); return; }
+            const atrArr = calculateATR(candles, 14);
+            const atr = atrArr[atrArr.length - 1];
+            if (!atr || atr <= 0) { log('❌ ATR invalide', 'error', 'cfg-logs'); return; }
+            log('📊 ATR(14) M5 : ' + atr.toFixed(digits), 'data', 'cfg-logs');
+
+            const direction = 'buy';
+            const entry = ask;
+            const sl = entry - atr * 1.0;
+            const tp = entry + atr * 3.0;
+            const riskUSD = 5;
+
+            const slDistance = Math.abs(entry - sl);
+            if (slDistance <= 0) { log('❌ SL invalide', 'error', 'cfg-logs'); return; }
+
+            const slPoints = slDistance / point;
+            const valuePerPointPerLot = tickValue * (point / tickSize);
+            const riskPerLot = slPoints * valuePerPointPerLot;
+            if (riskPerLot <= 0) { log('❌ Calcul du lot impossible', 'error', 'cfg-logs'); return; }
+
+            let lot = riskUSD / riskPerLot;
+            lot = Math.round(lot / vstep) * vstep;
+            lot = Math.max(vmin, Math.min(vmax, lot));
+            lot = parseFloat(lot.toFixed(2));
+
+            log('🎯 Ordre : ' + direction.toUpperCase() + ' ' + lot + ' lots @ ' + entry.toFixed(digits), 'info', 'cfg-logs');
+            log('   SL=' + sl.toFixed(digits) + ' (' + slPoints.toFixed(0) + ' pts) | TP=' + tp.toFixed(digits), 'info', 'cfg-logs');
+            log('   Risque calculé : ' + (riskPerLot * lot).toFixed(2) + ' USD', 'info', 'cfg-logs');
+
+            const requestId = 'test_' + Date.now();
+            const mult = Math.pow(10, digits);
+            const e = Math.round(entry * mult) / mult;
+            const s = Math.round(sl * mult) / mult;
+            const t = Math.round(tp * mult) / mult;
+
+            const trade = addTrade({
+                symbol: symbolMT5, mt5Symbol: symbolMT5,
+                direction: direction, riskUSD: riskUSD, lot: lot,
+                strategyName: 'TEST MANUEL', hybridScore: 100,
+                entryPrice: e, slPrice: s, tpPrice: t,
+                status: 'validating',
+                signalData: { source: 'test-button', comment: 'TEST_5USD' }
+            });
+            state.pendingOrders.set(requestId, trade.id);
+
+            const sent = sendMT5({
+                type: 'open_order',
+                request_id: requestId,
+                order: {
+                    symbol: symbolMT5,
+                    direction: direction,
+                    risk_usd: riskUSD,
+                    entry_price: e,
+                    sl_price: s,
+                    tp_price: t,
+                    sl_points: Math.round(slPoints),
+                    comment: 'TEST_5USD'
+                }
+            });
+
+            if (sent) log('📤 Ordre envoyé. Attente de la réponse MT5…', 'success', 'cfg-logs');
+            else { log('❌ Échec de l\\'envoi', 'error', 'cfg-logs'); updateTrade(trade.id, { status: 'rejected', error: 'Send failed' }); }
+
+        } catch (err) {
+            log('❌ Erreur : ' + err.message, 'error', 'cfg-logs');
+        }
+    });
+    // ═════════════════════════════════════════════════════════════════
+
     ['risk-daily', 'risk-exposure', 'scan-maxpos'].forEach(id => $(id).addEventListener('change', debounce(saveRisk, 400)));
     window.addEventListener('beforeunload', () => { stopTracking(); stopPositionPoll(); });
 }
