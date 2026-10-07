@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' wss: https:; img-src 'self' data: https:;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' wss: https:; img-src 'self' data: https:;">
 <title>SMC Trader Pro v11</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f1419">
@@ -34,14 +34,12 @@ h1 { font-size: 1.2rem; margin-bottom: 0.3rem; }
 .status-text { flex: 1; font-weight: 600; font-size: 0.82rem; }
 .status-detail { font-size: 0.68rem; color: var(--ink-dim); }
 
-/* ═══ UNIVERS SELECTOR ═══ */
 .universe-selector { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.4rem; margin-bottom: 0.8rem; }
 .universe-btn { padding: 0.7rem 0.5rem; border-radius: 10px; border: 2px solid var(--border); background: var(--panel); color: var(--ink-dim); font-size: 0.72rem; font-weight: 700; cursor: pointer; font-family: inherit; text-align: center; transition: all 0.2s; }
 .universe-btn.active { background: linear-gradient(135deg, var(--purple), var(--cyan)); color: #fff; border-color: var(--purple); }
 .universe-btn:hover:not(.active) { border-color: var(--info); }
 .universe-btn .icon { display: block; font-size: 1.4rem; margin-bottom: 0.2rem; }
 
-/* ═══ MT5 CARD ═══ */
 .mt5-card { background: linear-gradient(135deg, #052e16 0%, #0a0f14 100%); border: 2px solid var(--success); border-radius: 12px; padding: 1rem; margin-bottom: 0.8rem; }
 .mt5-card.disconnected { background: var(--panel); border-color: var(--error); }
 .mt5-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.7rem; }
@@ -58,14 +56,12 @@ h1 { font-size: 1.2rem; margin-bottom: 0.3rem; }
 .mt5-risk-display { grid-column: span 2; background: linear-gradient(135deg, #fbbf2422, #fbbf2411); border: 1px solid var(--gold); }
 .mt5-risk-display .val { color: var(--gold); font-size: 1.1rem; }
 
-/* ═══ TABS ═══ */
 .tabs { display: flex; gap: 0.2rem; margin-bottom: 1rem; background: var(--panel); border-radius: 10px; padding: 0.25rem; border: 1px solid var(--border); overflow-x: auto; }
 .tab { padding: 0.5rem 0.7rem; border-radius: 7px; font-size: 0.7rem; font-weight: 600; cursor: pointer; white-space: nowrap; color: var(--ink-dim); flex: 1; text-align: center; background: transparent; border: none; font-family: inherit; }
 .tab.active { background: var(--success); color: #fff; }
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
 
-/* ═══ SECTIONS ═══ */
 .section { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-bottom: 0.8rem; }
 .section-title { font-size: 0.7rem; text-transform: uppercase; color: var(--ink-dim); font-weight: 700; letter-spacing: 0.06em; margin-bottom: 0.8rem; display: flex; justify-content: space-between; align-items: center; }
 label { display: block; font-size: 0.65rem; color: var(--ink-dim); margin-bottom: 0.3rem; text-transform: uppercase; font-weight: 700; }
@@ -81,7 +77,6 @@ button.warn { background: var(--warn); border-color: var(--warn); color: #fff; }
 button.gold { background: var(--gold); border-color: var(--gold); color: #000; }
 button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
 
-/* ═══ STATS ═══ */
 .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; margin-bottom: 1rem; }
 .stat { padding: 0.6rem; border-radius: 8px; background: var(--panel); border: 1px solid var(--border); text-align: center; }
 .stat-label { font-size: 0.58rem; color: var(--ink-dim); text-transform: uppercase; font-weight: 700; }
@@ -90,7 +85,6 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
 .stat-value.blue { color: var(--info); } .stat-value.orange { color: var(--warn); }
 .stat-value.purple { color: var(--purple); } .stat-value.gold { color: var(--gold); }
 
-/* ═══ TRADE CARDS ═══ */
 .trade-card { background: var(--panel-2); border-radius: 8px; padding: 0.8rem; margin-bottom: 0.6rem; border-left: 4px solid var(--ink-faint); }
 .trade-card.open { border-left-color: var(--info); }
 .trade-card.win { border-left-color: var(--success); background: #052e1633; }
@@ -107,7 +101,6 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
 .trade-info .value { font-weight: 700; }
 .trade-footer { display: flex; justify-content: space-between; font-size: 0.62rem; color: var(--ink-faint); margin-top: 0.3rem; }
 
-/* ═══ LOGS ═══ */
 .logs { background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem; font-family: ui-monospace, monospace; font-size: 0.7rem; max-height: 300px; overflow-y: auto; line-height: 1.6; }
 .log-line { margin-bottom: 0.2rem; word-break: break-all; }
 .log-time { color: var(--ink-faint); margin-right: 0.4rem; }
@@ -117,16 +110,13 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
 .log-hybrid { color: var(--cyan); font-weight: 700; }
 .empty { text-align: center; padding: 1.2rem 1rem; color: var(--ink-faint); font-size: 0.75rem; }
 
-/* ═══ FUNNEL ═══ */
 .funnel { display: grid; grid-template-columns: 1fr auto; gap: 0.3rem; padding: 0.4rem 0.6rem; background: var(--panel-2); border-radius: 6px; font-size: 0.7rem; margin-bottom: 0.2rem; font-family: ui-monospace, monospace; }
 .funnel .step { color: var(--ink-dim); }
 .funnel .count { color: var(--gold); font-weight: 700; }
 
-/* ═══ CANDLES ═══ */
 .candles-container { background: var(--panel-2); border-radius: 10px; padding: 0.5rem; margin-bottom: 0.7rem; height: 280px; position: relative; overflow: hidden; }
 .candles-container canvas { width: 100%; height: 100%; display: block; }
 
-/* ═══ TOP 5 ═══ */
 .top5-item { background: var(--panel-2); border-radius: 8px; padding: 0.7rem 0.9rem; border-left: 4px solid; display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 0.7rem; margin-bottom: 0.4rem; }
 .top5-rank { font-size: 1.3rem; font-weight: 700; font-family: ui-monospace, monospace; text-align: center; }
 .top5-score { font-size: 1.1rem; font-weight: 700; font-family: ui-monospace, monospace; color: var(--success); text-align: right; }
@@ -136,7 +126,6 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
 .top5-matrix .cell .lbl { color: var(--ink-faint); font-size: 0.55rem; }
 .top5-matrix .cell .val { font-weight: 700; }
 
-/* ═══ PROGRESS BAR ═══ */
 .trade-progress-container { margin-top: 0.6rem; padding: 0.6rem 0; }
 .trade-progress-bar { position: relative; height: 24px; background: linear-gradient(90deg, #dc262633 0%, #ea580c33 25%, #fbbf2433 50%, #16a34a33 75%, #16a34a55 100%); border-radius: 12px; overflow: hidden; margin-bottom: 0.5rem; border: 1px solid var(--border); }
 .trade-progress-fill { position: absolute; top: 0; left: 0; bottom: 0; background: linear-gradient(90deg, var(--error), var(--warn), var(--success)); transition: width 0.5s ease; }
@@ -173,31 +162,24 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
 <h1>🚀 SMC Trader Pro <span class="badge-v">v11</span></h1>
 <p class="subtitle">Multi-Univers · Multi-TF · MT5 Direct · Risque 1% · Anti-doublon</p>
 
-<!-- SÉLECTEUR UNIVERS -->
 <div class="universe-selector">
     <button class="universe-btn active" data-universe="deriv">
-        <span class="icon">🟣</span>
-        Deriv
+        <span class="icon">🟣</span>Deriv
     </button>
     <button class="universe-btn" data-universe="forex">
-        <span class="icon">💱</span>
-        Forex
+        <span class="icon">💱</span>Forex
     </button>
     <button class="universe-btn" data-universe="crypto">
-        <span class="icon">🪙</span>
-        Crypto
+        <span class="icon">🪙</span>Crypto
     </button>
     <button class="universe-btn" data-universe="metals">
-        <span class="icon">🥇</span>
-        Métaux
+        <span class="icon">🥇</span>Métaux
     </button>
     <button class="universe-btn" data-universe="all">
-        <span class="icon">🌐</span>
-        Tous
+        <span class="icon">🌐</span>Tous
     </button>
 </div>
 
-<!-- CARTE MT5 -->
 <div class="mt5-card disconnected" id="mt5-card">
     <div class="mt5-header">
         <div class="mt5-title">
@@ -208,30 +190,14 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
     </div>
     <div class="mt5-status-detail" id="mt5-card-detail">Configuration requise — Tab Config</div>
     <div class="mt5-grid">
-        <div class="mt5-item">
-            <div class="lbl">Compte</div>
-            <div class="val cyan" id="mt5-account">—</div>
-        </div>
-        <div class="mt5-item">
-            <div class="lbl">Balance</div>
-            <div class="val" id="mt5-balance">—</div>
-        </div>
-        <div class="mt5-item">
-            <div class="lbl">Devise</div>
-            <div class="val gold" id="mt5-currency">—</div>
-        </div>
-        <div class="mt5-item">
-            <div class="lbl">Levier</div>
-            <div class="val purple" id="mt5-leverage">—</div>
-        </div>
-        <div class="mt5-item mt5-risk-display">
-            <div class="lbl">💰 Risque 1% par trade</div>
-            <div class="val" id="mt5-risk">—</div>
-        </div>
+        <div class="mt5-item"><div class="lbl">Compte</div><div class="val cyan" id="mt5-account">—</div></div>
+        <div class="mt5-item"><div class="lbl">Balance</div><div class="val" id="mt5-balance">—</div></div>
+        <div class="mt5-item"><div class="lbl">Devise</div><div class="val gold" id="mt5-currency">—</div></div>
+        <div class="mt5-item"><div class="lbl">Levier</div><div class="val purple" id="mt5-leverage">—</div></div>
+        <div class="mt5-item mt5-risk-display"><div class="lbl">💰 Risque 1% par trade</div><div class="val" id="mt5-risk">—</div></div>
     </div>
 </div>
 
-<!-- STATUS DERIV/BRIDGE -->
 <div class="status-box">
     <div class="dot" id="deriv-dot"></div>
     <div style="flex:1;">
@@ -240,7 +206,6 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
     </div>
 </div>
 
-<!-- TABS -->
 <div class="tabs">
     <button class="tab active" data-tab="analyse">🔍 Analyse</button>
     <button class="tab" data-tab="scanner">🤖 Scanner</button>
@@ -250,7 +215,6 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
     <button class="tab" data-tab="config">⚙️ Config</button>
 </div>
 
-<!-- TAB ANALYSE -->
 <div class="tab-panel active" id="panel-analyse">
     <div class="section">
         <div class="section-title">📊 Instrument</div>
@@ -286,7 +250,6 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
     </div>
 </div>
 
-<!-- TAB SCANNER -->
 <div class="tab-panel" id="panel-scanner">
     <div class="section">
         <div class="section-title">
@@ -318,7 +281,6 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
     </div>
 </div>
 
-<!-- TAB JOURNAL -->
 <div class="tab-panel" id="panel-journal">
     <div class="section">
         <div class="section-title">
@@ -347,7 +309,6 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
     </div>
 </div>
 
-<!-- TAB STATS -->
 <div class="tab-panel" id="panel-stats">
     <div class="section">
         <div class="section-title">📊 Stats globales</div>
@@ -370,7 +331,6 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
     </div>
 </div>
 
-<!-- TAB RISK -->
 <div class="tab-panel" id="panel-risk">
     <div class="section">
         <div class="section-title">🛡️ Risk Guard</div>
@@ -396,14 +356,13 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
     </div>
 </div>
 
-<!-- TAB CONFIG -->
 <div class="tab-panel" id="panel-config">
     <div class="section">
         <div class="section-title">🔌 Bridge MT5</div>
         <label>URL WebSocket</label>
-        <input type="text" id="cfg-ws-url" placeholder="wss://...trycloudflare.com">
-        <label>Token (vide si auth off)</label>
-        <input type="text" id="cfg-ws-token" placeholder="(vide)">
+        <input type="text" id="cfg-ws-url" placeholder="wss://...onrender.com">
+        <label>Token</label>
+        <input type="password" id="cfg-ws-token" placeholder="Token bridge (obligatoire)">
         <button class="primary small" id="btn-connect-mt5">🔌 Connecter</button>
         <button class="danger small" id="btn-disconnect-mt5">⏹ Déconnecter</button>
         <button class="info small" id="btn-test-order">🧪 Test ordre 5$</button>
@@ -434,14 +393,13 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
 </div>
 <script>
 // ═══════════════════════════════════════════════════════════════════
-// PARTIE 2/4 — CONFIG + STATE + BRIDGE MT5 (get_tick, get_candles, get_account)
+// PARTIE 2/4 — CONFIG + STATE + BRIDGE MT5
 // ═══════════════════════════════════════════════════════════════════
 
 const UNIVERSES = {
     deriv: {
         name: '🟣 Deriv',
         indices: [
-
     { code: 'R_10', mt5: 'Volatility 10 Index', display: 'Volatility 10' },
     { code: 'R_25', mt5: 'Volatility 25 Index', display: 'Volatility 25' },
     { code: 'R_50', mt5: 'Volatility 50 Index', display: 'Volatility 50' },
@@ -483,7 +441,6 @@ const UNIVERSES = {
     { code: 'RB200', mt5: 'Range Break 200 Index', display: 'Range Break 200' },
     { code: 'RDBULL', mt5: 'Bull Market Index', display: 'Bull Market' },
     { code: 'RDBEAR', mt5: 'Bear Market Index', display: 'Bear Market' }
-
         ]
     },
     forex: {
@@ -521,8 +478,6 @@ const UNIVERSES = {
     }
 };
 
-// V11 — univers global : tous les instruments de l'ancienne version,
-// sans perte et sans doublons (BTCUSD/XAUUSD/XAGUSD peuvent exister dans plusieurs familles).
 UNIVERSES.all = {
     name: '🌐 Tous les instruments',
     indices: Object.values(UNIVERSES).flatMap(u => u.indices)
@@ -530,7 +485,7 @@ UNIVERSES.all = {
 };
 
 const DEFAULTS = {
-    wsUrl: 'wss://preference-hans-cleanup-chest.trycloudflare.com',
+    wsUrl: 'wss://smc-bridge-q7vj.onrender.com',
     wsToken: '',
     tgToken: '',
     tgChat: '',
@@ -559,38 +514,30 @@ const CFG = {
     RECONNECT_BASE_MS: 2000, MAX_RECONNECT: 10,
     TRACKING_INTERVAL_MS: 2000, POSITION_POLL_MS: 5000,
     RISK_PCT: 1.0, MAX_PENDING_RISK_PCT: 1.0,
-    REQUIRE_H4_H1_ALIGNMENT: true
+    REQUIRE_H4_H1_ALIGNMENT: true,
+    ORDER_RESPONSE_TIMEOUT_MS: 30000,
+    MAX_PENDING_AGE_MS: 120000
 };
 
 const state = {
-    // Univers
     universe: 'deriv',
-    // Bridge MT5
     mt5Ws: null, mt5Connected: false,
     mt5ReconnectAttempts: 0, mt5ReconnectTimer: null,
     pendingOrders: new Map(),
     riskReservations: new Map(),
     pendingTicks: new Map(),
     pendingCandles: new Map(),
-    // Account MT5
     account: null,
-    // Positions MT5
     mt5Positions: [],
     positionPollTimer: null,
-    // Trades
     trades: [], signals: [], signalCache: {},
     killSwitch: false,
-    // Scanner
     scannerActive: false, scannerTimer: null, countdownTimer: null,
     nextScanAt: null, scanning: false,
-    // Tracking
     trackingInterval: null,
     trackingTicks: new Map(),
-    // Funnel
     funnel: { total: 0, dataOK: 0, strat1OK: 0, strat2OK: 0, strat3OK: 0, strat4OK: 0, strat5OK: 0, unifiedOK: 0, hybridOK: 0, riskOK: 0, blocked: 0, ordersSent: 0, ordersExecuted: 0 },
-    // Top 5
     top5Setups: [],
-    // MT5 symbol resolution
     symbolMT5Map: {}
 };
 
@@ -637,9 +584,6 @@ function formatDuration(ms) {
     return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// CONFIG LOAD/SAVE
-// ═══════════════════════════════════════════════════════════════════
 function loadConfig() {
     $('cfg-ws-url').value = localStorage.getItem(STORAGE.wsUrl) || DEFAULTS.wsUrl;
     $('cfg-ws-token').value = localStorage.getItem(STORAGE.wsToken) || DEFAULTS.wsToken;
@@ -674,19 +618,14 @@ function saveRisk() {
 function getConfig() {
     return {
         amount: state.account && Number.isFinite(state.account.balance) && state.account.balance > 0 ? (state.account.balance * CFG.RISK_PCT / 100) : null,
-        wr: 40,
-        pf: 0.5,
+        wr: 40, pf: 0.5,
         maxpos: parseInt($('scan-maxpos').value) || 5,
         riskDaily: parseFloat($('risk-daily').value) || 50,
         riskExposure: parseFloat($('risk-exposure').value) || 200,
-        riskCooldown: 30,
-        riskStreak: 5
+        riskCooldown: 30, riskStreak: 5
     };
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// STORAGE
-// ═══════════════════════════════════════════════════════════════════
 function loadTrades() { try { state.trades = JSON.parse(localStorage.getItem(STORAGE.trades) || '[]'); } catch (e) { state.trades = []; } }
 function saveTrades() { try { localStorage.setItem(STORAGE.trades, JSON.stringify(state.trades)); } catch (e) {} }
 function loadSignals() {
@@ -717,7 +656,7 @@ function loadKillSwitch() { state.killSwitch = localStorage.getItem(STORAGE.kill
 function saveKillSwitch() { localStorage.setItem(STORAGE.kill, state.killSwitch ? '1' : '0'); }
 
 // ═══════════════════════════════════════════════════════════════════
-// BRIDGE MT5 — WEBSOCKET
+// BRIDGE MT5 — WEBSOCKET (Render)
 // ═══════════════════════════════════════════════════════════════════
 function connectMT5() {
     if (state.mt5Ws) { try { state.mt5Ws.close(); } catch (e) {} }
@@ -734,10 +673,17 @@ function connectMT5() {
         state.mt5ReconnectAttempts = 0;
         updateMT5Card('connected', 'MT5 connecté', 'Bridge actif');
         log('✅ Bridge MT5 connecté', 'success', 'cfg-logs');
+
+        // ▼ Authentification vers bridge Render
+        const token = $('cfg-ws-token').value.trim() || DEFAULTS.wsToken;
+        state.mt5Ws.send(JSON.stringify({ role: 'app', token: token }));
+        log('🔐 Auth envoyée', 'info', 'cfg-logs');
+        // ▲
+
         $('btn-connect-mt5').disabled = true;
         $('btn-disconnect-mt5').disabled = false;
-        setTimeout(() => sendMT5({ type: 'get_account' }), 300);
-        setTimeout(() => sendMT5({ type: 'get_positions' }), 600);
+        setTimeout(() => sendMT5({ type: 'get_account' }), 1000);
+        setTimeout(() => sendMT5({ type: 'get_positions' }), 1500);
         startPositionPoll();
     };
     state.mt5Ws.onmessage = (event) => {
@@ -775,22 +721,15 @@ function sendMT5(payload) {
 function handleMT5Message(data) {
     const type = data.type || '?';
 
-    // ═══ Réponses aux requêtes ═══
     if (type === 'order_executed') {
         log('🎉 Exécuté ! Ticket ' + data.ticket, 'signal', 'cfg-logs');
         const tradeId = data.request_id ? state.pendingOrders.get(data.request_id) : null;
         if (tradeId) {
             updateTrade(tradeId, {
-                status: 'open',
-                ticket: data.ticket,
-                openPrice: data.price,
-                entryPrice: parseFloat(data.price) || null,
-                openTime: Date.now(),
-                mt5Symbol: data.symbol,
-                lot: data.volume,
-                riskReal: data.risk_usd,
-                slPrice: parseFloat(data.sl) || null,
-                tpPrice: parseFloat(data.tp) || null,
+                status: 'open', ticket: data.ticket, openPrice: data.price,
+                entryPrice: parseFloat(data.price) || null, openTime: Date.now(),
+                mt5Symbol: data.symbol, lot: data.volume, riskReal: data.risk_usd,
+                slPrice: parseFloat(data.sl) || null, tpPrice: parseFloat(data.tp) || null,
                 touchedEntry: true
             });
             state.pendingOrders.delete(data.request_id);
@@ -824,51 +763,28 @@ function handleMT5Message(data) {
             t.point = Number(data.point) || null; t.digits = Number(data.digits);
             t.tick_size = Number(data.tick_size) || null; t.tick_value = Number(data.tick_value) || null;
             t.volume_min = Number(data.volume_min) || null; t.volume_max = Number(data.volume_max) || null; t.volume_step = Number(data.volume_step) || null;
-            t.time = data.time;
-            t.subscribed = true;
+            t.time = data.time; t.subscribed = true;
             state.trackingTicks.set(tickData.symbol, t);
             state.pendingTicks.delete(data.request_id);
         }
         return;
     }
-    if (type === 'tick_error') {
-        state.pendingTicks.delete(data.request_id);
-        return;
-    }
+    if (type === 'tick_error') { state.pendingTicks.delete(data.request_id); return; }
     if (type === 'candles_result') {
         const cb = state.pendingCandles.get(data.request_id);
-        if (cb) {
-            cb.resolve(normalizeCandles(data.candles || []));
-            state.pendingCandles.delete(data.request_id);
-        }
+        if (cb) { cb.resolve(normalizeCandles(data.candles || [])); state.pendingCandles.delete(data.request_id); }
         return;
     }
     if (type === 'candles_error') {
         const cb = state.pendingCandles.get(data.request_id);
-        if (cb) {
-            cb.reject(new Error(data.error || 'Erreur get_candles'));
-            state.pendingCandles.delete(data.request_id);
-        }
+        if (cb) { cb.reject(new Error(data.error || 'Erreur get_candles')); state.pendingCandles.delete(data.request_id); }
         return;
     }
-
-    // ═══ Notifications ═══
-    if (type === 'get_positions') {
-        handlePositionsResponse(data);
-        return;
-    }
-    if (type === 'get_account') {
-        handleAccountResponse(data);
-        return;
-    }
-    if (type === 'welcome') {
-        log('✅ Bridge welcome v' + (data.version || '?'), 'success', 'cfg-logs');
-        return;
-    }
-    if (type === 'status') {
-        log('📊 Bridge EA=' + data.ea_connected + ' Queue=' + data.queue_length, 'data', 'cfg-logs');
-        return;
-    }
+    if (type === 'get_positions') { handlePositionsResponse(data); return; }
+    if (type === 'get_account') { handleAccountResponse(data); return; }
+    if (type === 'welcome') { log('✅ Bridge welcome v' + (data.version || '?'), 'success', 'cfg-logs'); return; }
+    if (type === 'status') { log('📊 Bridge EA=' + data.ea_connected + ' Queue=' + data.queue_length, 'data', 'cfg-logs'); return; }
+    if (type === 'ping') { return; } // ignore keepalive agent
     if (type === 'kill_switch') {
         state.killSwitch = data.active;
         saveKillSwitch();
@@ -881,13 +797,9 @@ function handleMT5Message(data) {
 
 function handleAccountResponse(data) {
     state.account = {
-        login: data.login,
-        balance: parseFloat(data.balance) || 0,
-        equity: parseFloat(data.equity) || 0,
-        currency: data.currency || 'USD',
-        leverage: data.leverage,
-        company: data.company,
-        server: data.server,
+        login: data.login, balance: parseFloat(data.balance) || 0,
+        equity: parseFloat(data.equity) || 0, currency: data.currency || 'USD',
+        leverage: data.leverage, company: data.company, server: data.server,
         profit: parseFloat(data.profit) || 0
     };
     updateMT5Card('connected', 'MT5 connecté', 'Compte ' + state.account.login);
@@ -901,15 +813,9 @@ function handlePositionsResponse(data) {
         mt5Tickets.add(pos.ticket);
         const trade = state.trades.find(t => t.ticket === pos.ticket);
         if (trade) {
-            updateTrade(trade.id, {
-                currentPrice: pos.price_current,
-                profit: pos.profit,
-                swap: pos.swap,
-                lastUpdate: Date.now()
-            });
+            updateTrade(trade.id, { currentPrice: pos.price_current, profit: pos.profit, swap: pos.swap, lastUpdate: Date.now() });
         }
     }
-    // Détecter les trades clôturés
     for (const trade of state.trades) {
         if (trade.status === 'open' && trade.ticket && !mt5Tickets.has(trade.ticket)) {
             log('🎯 Trade clôturé : #' + trade.ticket, 'success', 'j-logs');
@@ -921,9 +827,6 @@ function handlePositionsResponse(data) {
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// POLL POSITIONS MT5 (toutes les 5 sec)
-// ═══════════════════════════════════════════════════════════════════
 function startPositionPoll() {
     stopPositionPoll();
     state.positionPollTimer = setInterval(() => {
@@ -937,9 +840,6 @@ function stopPositionPoll() {
     if (state.positionPollTimer) { clearInterval(state.positionPollTimer); state.positionPollTimer = null; }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// GET TICK / GET CANDLES via bridge
-// ═══════════════════════════════════════════════════════════════════
 function requestTick(symbolMT5) {
     return new Promise((resolve, reject) => {
         if (!state.mt5Connected) { reject(new Error('Bridge non connecté')); return; }
@@ -947,10 +847,7 @@ function requestTick(symbolMT5) {
         state.pendingTicks.set(reqId, { symbol: symbolMT5, resolve, reject });
         sendMT5({ type: 'get_tick', symbol: symbolMT5, request_id: reqId });
         setTimeout(() => {
-            if (state.pendingTicks.has(reqId)) {
-                state.pendingTicks.delete(reqId);
-                reject(new Error('Timeout get_tick'));
-            }
+            if (state.pendingTicks.has(reqId)) { state.pendingTicks.delete(reqId); reject(new Error('Timeout get_tick')); }
         }, 5000);
     });
 }
@@ -961,17 +858,11 @@ function requestCandles(symbolMT5, timeframe, count) {
         state.pendingCandles.set(reqId, { resolve, reject });
         sendMT5({ type: 'get_candles', symbol: symbolMT5, timeframe: timeframe, count: count, request_id: reqId });
         setTimeout(() => {
-            if (state.pendingCandles.has(reqId)) {
-                state.pendingCandles.delete(reqId);
-                reject(new Error('Timeout get_candles'));
-            }
+            if (state.pendingCandles.has(reqId)) { state.pendingCandles.delete(reqId); reject(new Error('Timeout get_candles')); }
         }, 15000);
     });
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// MT5 CARD UI
-// ═══════════════════════════════════════════════════════════════════
 function updateMT5Card(status, text, detail) {
     const card = $('mt5-card');
     const dot = $('mt5-card-dot');
@@ -1014,30 +905,18 @@ function updateMT5AccountDisplay() {
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// ANTI-DOUBLON — Vérifie si on peut ouvrir un ordre
-// ═══════════════════════════════════════════════════════════════════
 function canOpenOrder(symbolCode, symbolMT5, setupId) {
     if (setupId && isCached(setupId)) return { ok:false, reason:"SETUP_DUPLICATE", detail:setupId };
-    // 1. Vérifier les trades locaux (statut open/sent/pending)
     const local = state.trades.find(t =>
         (t.symbol === symbolCode || t.mt5Symbol === symbolMT5) &&
         (t.status === 'open' || t.status === 'sent' || t.status === 'pending' || t.status === 'validating' || t.status === 'submitted')
     );
-    if (local) {
-        return { ok: false, reason: 'POSITION_LOCAL_OPEN', detail: '#' + (local.ticket || 'pending') };
-    }
-    // 2. Vérifier les positions MT5
+    if (local) return { ok: false, reason: 'POSITION_LOCAL_OPEN', detail: '#' + (local.ticket || 'pending') };
     const mt5Pos = state.mt5Positions.find(p => p.symbol === symbolMT5);
-    if (mt5Pos) {
-        return { ok: false, reason: 'MT5_POSITION_EXISTS', detail: '#' + mt5Pos.ticket };
-    }
+    if (mt5Pos) return { ok: false, reason: 'MT5_POSITION_EXISTS', detail: '#' + mt5Pos.ticket };
     return { ok: true };
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// TRADES
-// ═══════════════════════════════════════════════════════════════════
 function addTrade(trade) {
     trade.id = 'tr_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
     trade.createdAt = Date.now();
@@ -1060,12 +939,9 @@ function updateTrade(id, updates) {
     saveTrades();
     renderJournal();
 }
-function getOpenTrades() { return state.trades.filter(t => t.status === 'open' || t.status === 'sent' || t.status === 'pending'); }
+function getOpenTrades() { return state.trades.filter(t => ['open','sent','pending','validating','submitted'].includes(t.status)); }
 function getClosedTrades() { return state.trades.filter(t => t.status === 'closed' || t.status === 'rejected'); }
 
-// ═══════════════════════════════════════════════════════════════════
-// TELEGRAM + DEEPSEEK
-// ═══════════════════════════════════════════════════════════════════
 async function notifyTelegram(text) {
     const token = $('cfg-tg-token').value.trim();
     const chatId = $('cfg-tg-chatid').value.trim();
@@ -1116,9 +992,6 @@ async function auditTrade(trade) {
     } catch (e) { log('⚠️ Audit échoué : ' + e.message, 'warn', 'j-logs'); }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// SUIVI TEMPS RÉEL (via get_tick MT5)
-// ═══════════════════════════════════════════════════════════════════
 function startTracking() {
     if (state.trackingInterval) return;
     state.trackingInterval = setInterval(trackLoop, CFG.TRACKING_INTERVAL_MS);
@@ -1128,27 +1001,19 @@ function stopTracking() {
     if (state.trackingInterval) { clearInterval(state.trackingInterval); state.trackingInterval = null; }
 }
 function trackLoop() {
-    const openTrades = state.trades.filter(t => t.status === 'open' || t.status === 'sent');
+    expireStaleReservations();
+    const openTrades = state.trades.filter(t => ['open','sent','submitted'].includes(t.status));
     if (openTrades.length === 0 || !state.mt5Connected) return;
     const symbolsToTick = new Set();
     for (const trade of openTrades) {
         const symMT5 = trade.mt5Symbol || trade.symbol;
         if (symMT5) symbolsToTick.add(symMT5);
     }
-    symbolsToTick.forEach(sym => {
-        requestTick(sym).catch(() => {});
-    });
+    symbolsToTick.forEach(sym => { requestTick(sym).catch(() => {}); });
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// COMPUTE TRADE PROGRESS
-// ═══════════════════════════════════════════════════════════════════
 function computeTradeProgress(trade, currentPrice) {
-    const result = {
-        currentPrice: currentPrice,
-        progressPercent: 0, rrRealized: null, rrTotal: null,
-        pnlEstimate: null, pnlPercent: null
-    };
+    const result = { currentPrice, progressPercent: 0, rrRealized: null, rrTotal: null, pnlEstimate: null, pnlPercent: null };
     if (!trade.entryPrice || !trade.slPrice || !trade.tpPrice || currentPrice == null) return result;
     const entry = trade.entryPrice, sl = trade.slPrice, tp = trade.tpPrice, dir = trade.direction;
     const totalRange = Math.abs(tp - entry);
@@ -1164,11 +1029,10 @@ function computeTradeProgress(trade, currentPrice) {
     }
     return result;
 }
-
 </script>
 <script>
 // ═══════════════════════════════════════════════════════════════════
-// PARTIE 3/4 — INDICATEURS + STRATÉGIES + SMC + MULTI-TF + SCANNER
+// PARTIE 3/4 — INDICATEURS + STRATÉGIES + SMC + SCANNER
 // ═══════════════════════════════════════════════════════════════════
 
 function normalizeCandles(raw) {
@@ -1182,29 +1046,42 @@ function getTick(symbol) { return state.trackingTicks.get(symbol)||null; }
 function executableEntry(direction,tick) { const p=direction==='buy'?Number(tick?.ask):Number(tick?.bid); return Number.isFinite(p)&&p>0?p:null; }
 function roundPrice(price,digits){const d=Number.isInteger(digits)&&digits>=0?digits:8,m=10**d;return Math.round(price*m)/m;}
 function makeSetupId(sym,tf,setup){return hashString([sym,tf,setup.direction,setup.bosIndex,setup.reference,setup.signalCandleTime].join('|'));}
-function buildRiskBuffer(tick,atr){const spread=Number(tick?.spread)||((Number(tick?.ask)||0)-(Number(tick?.bid)||0));return Math.max(spread*CFG.SPREAD_BUFFER_MULT,(Number(atr)||0)*CFG.ATR_BUFFER_MULT,Number(tick?.point)||0);}
+function buildRiskBuffer(tick,atr){
+    const quoteSpread=(Number.isFinite(Number(tick?.ask))&&Number.isFinite(Number(tick?.bid)))
+        ? Math.abs(Number(tick.ask)-Number(tick.bid)) : 0;
+    const spread=quoteSpread>0?quoteSpread:Math.max(0,Number(tick?.spread)||0);
+    return Math.max(spread*CFG.SPREAD_BUFFER_MULT,(Number(atr)||0)*CFG.ATR_BUFFER_MULT,Number(tick?.point)||0);
+}
 function validateGeometry(direction,entry,sl,tp,tick){if(![entry,sl,tp].every(Number.isFinite))return{ok:false,reason:'INVALID_PRICE'};const minDist=Math.max(Number(tick?.point)||0,Number(tick?.spread)||0);if(direction==='buy'){if(!(sl<entry&&tp>entry))return{ok:false,reason:'BAD_BUY_GEOMETRY'};if(Number.isFinite(tick?.bid)&&sl>=tick.bid-minDist)return{ok:false,reason:'BUY_SL_TOO_CLOSE'};}else{if(!(sl>entry&&tp<entry))return{ok:false,reason:'BAD_SELL_GEOMETRY'};if(Number.isFinite(tick?.ask)&&sl<=tick.ask+minDist)return{ok:false,reason:'SELL_SL_TOO_CLOSE'};}const risk=Math.abs(entry-sl),reward=Math.abs(tp-entry),rr=risk>0?reward/risk:0;if(rr<CFG.MIN_RR)return{ok:false,reason:'RR_TOO_LOW',rr};return{ok:true,risk,reward,rr};}
 function reservedRisk(){return [...state.riskReservations.values()].reduce((s,v)=>s+(Number(v.riskUSD)||0),0);}
 function reserveRisk(requestId,riskUSD,setupId){if(!requestId||!Number.isFinite(riskUSD)||riskUSD<=0)return false;state.riskReservations.set(requestId,{riskUSD,setupId,time:Date.now()});return true;}
 function releaseRisk(requestId){state.riskReservations.delete(requestId);}
+function expireStaleReservations(){
+    const now=Date.now();
+    for(const [requestId,res] of state.riskReservations){
+        if(now-(Number(res.time)||now)>CFG.MAX_PENDING_AGE_MS && state.pendingOrders.has(requestId)){
+            const tradeId=state.pendingOrders.get(requestId);
+            if(tradeId){
+                updateTrade(tradeId,{status:'uncertain',error:'Aucune réponse du bridge après '+Math.round(CFG.MAX_PENDING_AGE_MS/1000)+'s'});
+            }
+            // Conservative: keep no client-side risk lock forever, but mark the order uncertain.
+            releaseRisk(requestId);
+            state.pendingOrders.delete(requestId);
+            log('⚠️ Réservation expirée : ordre '+requestId+' marqué incertain','warn','cfg-logs');
+        }
+    }
+}
 function normalizeBacktestQuality(r1,r2){const total=(r1.total||0)+(r2.total||0),pf=((Number(r1.pf)||0)+(Number(r2.pf)||0))/2,wr=((r1.winrate||0)+(r2.winrate||0))/2;return{total,pf,wr,robust:r1.total>=CFG.MIN_TRADES_BACKTEST&&r2.total>=CFG.MIN_TRADES_BACKTEST};}
 function calculateATR(candles, period = 14) {
     if (candles.length < period + 1) return [];
     const trs = [];
     for (let i = 1; i < candles.length; i++) {
-        trs.push(Math.max(
-            candles[i].high - candles[i].low,
-            Math.abs(candles[i].high - candles[i-1].close),
-            Math.abs(candles[i].low - candles[i-1].close)
-        ));
+        trs.push(Math.max(candles[i].high - candles[i].low, Math.abs(candles[i].high - candles[i-1].close), Math.abs(candles[i].low - candles[i-1].close)));
     }
-    const atrs = [];
-    let sum = 0;
+    const atrs = []; let sum = 0;
     for (let i = 0; i < period; i++) sum += trs[i];
     atrs[period - 1] = sum / period;
-    for (let i = period; i < trs.length; i++) {
-        atrs[i] = (atrs[i-1] * (period - 1) + trs[i]) / period;
-    }
+    for (let i = period; i < trs.length; i++) atrs[i] = (atrs[i-1] * (period - 1) + trs[i]) / period;
     return atrs;
 }
 function calculateSMA(candles, period) {
@@ -1235,8 +1112,7 @@ function calculateRSI(candles, period = 14) {
         gains.push(diff > 0 ? diff : 0);
         losses.push(diff < 0 ? -diff : 0);
     }
-    const rsis = [];
-    let avgGain = 0, avgLoss = 0;
+    const rsis = []; let avgGain = 0, avgLoss = 0;
     for (let i = 0; i < period; i++) { avgGain += gains[i]; avgLoss += losses[i]; }
     avgGain /= period; avgLoss /= period;
     rsis[period] = avgLoss === 0 ? 100 : 100 - (100 / (1 + avgGain / avgLoss));
@@ -1247,7 +1123,6 @@ function calculateRSI(candles, period = 14) {
     }
     return rsis;
 }
-
 function simulateTrade(candles, startIdx, direction, entry, sl, tp) {
     for (let i = startIdx; i < candles.length; i++) {
         const c = candles[i];
@@ -1274,9 +1149,6 @@ function calculateStats(trades) {
     return { total: trades.length, wins: wins.length, losses: losses.length, winrate, pf };
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// 5 STRATÉGIES
-// ═══════════════════════════════════════════════════════════════════
 function strategy1(candles) {
     const rangeBars = 50, atrPeriod = 14;
     const atrs = calculateATR(candles, atrPeriod);
@@ -1286,7 +1158,7 @@ function strategy1(candles) {
         const rangeHigh = Math.max(...window.map(c => c.high));
         const rangeLow = Math.min(...window.map(c => c.low));
         const current = candles[i].close;
-        const atr = atrs[i - 1 - atrPeriod];
+        const atr = atrs[i - 1];
         if (!atr || atr <= 0) continue;
         if (current < rangeLow + atr * 0.5) {
             const entry = candles[i + 1].open;
@@ -1306,7 +1178,7 @@ function strategy2(candles, symbol) {
     const trades = [];
     const direction = symbol.includes('BOOM') ? 'sell' : 'buy';
     for (let i = atrPeriod + 5; i < candles.length - 1; i++) {
-        const atr = atrs[i - 1 - atrPeriod];
+        const atr = atrs[i - 1];
         if (!atr || atr <= 0) continue;
         const recent = candles.slice(Math.max(0, i - 5), i);
         if (recent.some(c => Math.abs(c.close - c.open) > atr * 2)) continue;
@@ -1328,7 +1200,7 @@ function strategy3(candles) {
     const startIdx = Math.max(bbPeriod, rsiPeriod, atrPeriod) + 1;
     for (let i = startIdx; i < candles.length - 1; i++) {
         const sma = smas[i], std = stds[i], rsi = rsis[i];
-        const atr = atrs[i - 1 - atrPeriod];
+        const atr = atrs[i - 1];
         if (!sma || !std || !rsi || !atr || atr <= 0) continue;
         const upper = sma + bbMult * std, lower = sma - bbMult * std;
         const close = candles[i].close;
@@ -1353,7 +1225,7 @@ function strategy4(candles) {
         const rangeHigh = Math.max(...window.map(c => c.high));
         const rangeLow = Math.min(...window.map(c => c.low));
         const current = candles[i];
-        const atr = atrs[i - 1 - atrPeriod];
+        const atr = atrs[i - 1];
         if (!atr || atr <= 0) continue;
         const isBull = current.close > rangeHigh && (current.close - current.open) > atr * 0.8;
         const isBear = current.close < rangeLow && (current.open - current.close) > atr * 0.8;
@@ -1375,7 +1247,7 @@ function strategy5(candles) {
     const trades = [];
     const minStart = Math.max(rangeBars, atrPeriod + lookback * 2) + 1;
     for (let i = minStart; i < candles.length - 2; i++) {
-        const atr = atrs[i - 1 - atrPeriod];
+        const atr = atrs[i - 1];
         if (!atr || atr <= 0) continue;
         const swings = [];
         for (let k = i - rangeBars + lookback; k < i - lookback; k++) {
@@ -1420,9 +1292,6 @@ const STRATEGIES = [
     { id: 's5', name: 'Stratégie 5', fn: strategy5 }
 ];
 
-// ═══════════════════════════════════════════════════════════════════
-// MOTEUR SMC UNIFIÉ
-// ═══════════════════════════════════════════════════════════════════
 function trendOf(candles) {
     if (candles.length < 20) return 'range';
     const first = candles[0].close, last = candles[candles.length - 1].close;
@@ -1449,9 +1318,6 @@ function evaluateSetup(candles) {
     setup.setupId=makeSetupId('symbol','TF',setup); return setup;
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// MULTI-TF ANALYSIS
-// ═══════════════════════════════════════════════════════════════════
 async function analyzeMultiTF(symbolMT5) {
     const timeframes=['M5','H1','H4','D1'],counts={M5:CFG.CANDLES_M5,H1:CFG.CANDLES_H1,H4:CFG.CANDLES_H4,D1:CFG.CANDLES_D1},results={};
     for(const tf of timeframes){try{const candles=closedCandles(await requestCandles(symbolMT5,tf,counts[tf]));if(candles.length<100){results[tf]=null;continue;}
@@ -1462,10 +1328,6 @@ async function analyzeMultiTF(symbolMT5) {
 }
 function topDownGate(mtf){const h4=mtf.H4,h1=mtf.H1,m5=mtf.M5;if(!h4||!h1||!m5||!m5.setup?.hasSignal)return{ok:false,reason:'NO_M5_TRIGGER'};if(h4.trend==='bullish'&&h1.trend==='bullish'&&m5.setup.direction==='buy')return{ok:true,direction:'buy',bias:'H4/H1 BULLISH'};if(h4.trend==='bearish'&&h1.trend==='bearish'&&m5.setup.direction==='sell')return{ok:true,direction:'sell',bias:'H4/H1 BEARISH'};return{ok:false,reason:'H4_H1_MISALIGNMENT',h4:h4.trend,h1:h1.trend,m5:m5.setup.direction};}
 
-
-// ═══════════════════════════════════════════════════════════════════
-// SCANNER MULTI-TF
-// ═══════════════════════════════════════════════════════════════════
 function startScanner() {
     if (state.scannerActive) return;
     state.scannerActive = true;
@@ -1491,31 +1353,114 @@ function stopScanner() {
 }
 
 async function runScan(){
-    if(!state.scannerActive||state.scanning)return;if(state.killSwitch){log('🚨 KILL SWITCH','error','scan-logs');return;}if(!state.mt5Connected){log('❌ Bridge MT5 HS','error','scan-logs');return;}
-    const config=getConfig();if(!Number.isFinite(config.amount)||config.amount<=0){log('🛑 Balance MT5 indisponible : aucun ordre','error','scan-logs');return;}state.scanning=true;
-    const universe=UNIVERSES[state.universe];state.funnel={total:universe.indices.length,dataOK:0,strat1OK:0,strat2OK:0,strat3OK:0,strat4OK:0,strat5OK:0,unifiedOK:0,hybridOK:0,riskOK:0,blocked:0,ordersSent:0,ordersExecuted:0};renderFunnel();
-    let totalOrders=0,blocked=0;const allSetups=[];
-    for(const sym of universe.indices){if(!state.scannerActive)break;const rg=checkRiskGuard(config);if(!rg.ok){log('🛡️ '+rg.reason,'warn','scan-logs');break;}if(getOpenTrades().length+state.riskReservations.size>=config.maxpos)break;
-        try{const mtf=await analyzeMultiTF(sym.mt5);if(!mtf.M5||!mtf.H1||!mtf.H4)continue;state.funnel.dataOK++;const gate=topDownGate(mtf);if(!gate.ok){state.funnel.blocked++;blocked++;continue;}state.funnel.unifiedOK++;const m5=mtf.M5;
-            const quality=Math.min(100,Math.round(m5.bestWR*0.45+Math.min(m5.bestPF,3)*20+20));if(m5.bestWR<40||m5.bestPF<0.5||quality<65){continue;}state.funnel.hybridOK++;
-            const setup=Object.assign({},m5.setup,{topDownBias:gate.bias,setupId:makeSetupId(sym.mt5,'M5',m5.setup)});allSetups.push({sym,tf:'M5',setup,score:quality,bestWR:m5.bestWR,bestPF:m5.bestPF,stratName:m5.bestStrat});
-            const antiDup=canOpenOrder(sym.code,sym.mt5,setup.setupId);if(!antiDup.ok){state.funnel.blocked++;blocked++;continue;}state.funnel.riskOK++;
-            if(await executeOrder(sym,setup,'M5',quality,config)){totalOrders++;state.funnel.ordersSent++;}await new Promise(r=>setTimeout(r,250));
-        }catch(e){log('⚠️ '+sym.display+' : '+e.message,'warn','scan-logs');}
+    if(!state.scannerActive||state.scanning)return;
+    if(state.killSwitch){log('🚨 KILL SWITCH','error','scan-logs');return;}
+    if(!state.mt5Connected){log('❌ Bridge MT5 non connecté','error','scan-logs');return;}
+    const config=getConfig();
+    if(!Number.isFinite(config.amount)||config.amount<=0){log('🛑 Balance MT5 indisponible : aucun ordre','error','scan-logs');return;}
+    state.scanning=true;
+    const universe=UNIVERSES[state.universe];
+    state.funnel={total:universe.indices.length,dataOK:0,strat1OK:0,strat2OK:0,strat3OK:0,strat4OK:0,strat5OK:0,unifiedOK:0,hybridOK:0,riskOK:0,blocked:0,ordersSent:0,ordersExecuted:0};
+    renderFunnel();
+    let totalOrders=0,blocked=0;
+    const allSetups=[];
+    try{
+        for(const sym of universe.indices){
+            if(!state.scannerActive)break;
+            expireStaleReservations();
+            const rg=checkRiskGuard(config);
+            if(!rg.ok){log('🛡️ '+rg.reason,'warn','scan-logs');break;}
+            if(getOpenTrades().length+state.riskReservations.size>=config.maxpos)break;
+            try{
+                const mtf=await analyzeMultiTF(sym.mt5);
+                if(!mtf.M5||!mtf.H1||!mtf.H4)continue;
+                state.funnel.dataOK++;
+                const m5=mtf.M5;
+                for(let n=1;n<=5;n++){
+                    const sr=m5.stratResults?.['s'+n];
+                    if(sr?.robust && Number(sr.wr)>=40 && Number(sr.pf)>=0.5) state.funnel['strat'+n+'OK']++;
+                }
+                const gate=topDownGate(mtf);
+                if(!gate.ok){state.funnel.blocked++;blocked++;continue;}
+                state.funnel.unifiedOK++;
+                const quality=Math.min(100,Math.round(m5.bestWR*0.45+Math.min(m5.bestPF,3)*20+20));
+                if(m5.bestWR<40||m5.bestPF<0.5||quality<65)continue;
+                state.funnel.hybridOK++;
+                const setup=Object.assign({},m5.setup,{topDownBias:gate.bias,setupId:makeSetupId(sym.mt5,'M5',m5.setup)});
+                allSetups.push({sym,tf:'M5',setup,score:quality,bestWR:m5.bestWR,bestPF:m5.bestPF,stratName:m5.bestStrat});
+                const antiDup=canOpenOrder(sym.code,sym.mt5,setup.setupId);
+                if(!antiDup.ok){state.funnel.blocked++;blocked++;continue;}
+                state.funnel.riskOK++;
+                if(await executeOrder(sym,setup,'M5',quality,config)){totalOrders++;state.funnel.ordersSent++;}
+                await new Promise(r=>setTimeout(r,250));
+            }catch(e){log('⚠️ '+sym.display+' : '+e.message,'warn','scan-logs');}
+        }
+    }finally{
+        allSetups.sort((a,b)=>b.score-a.score);
+        state.top5Setups=allSetups.slice(0,5);
+        renderTop5();
+        log('✅ V11 scan terminé · '+totalOrders+' ordres · '+blocked+' bloqués','success','scan-logs');
+        state.scanning=false;
+        renderScannerStats();
+        renderFunnel();
+        renderJournal();
+        scheduleNextScan();
     }
-    allSetups.sort((a,b)=>b.score-a.score);state.top5Setups=allSetups.slice(0,5);renderTop5();log('✅ V11 scan terminé · '+totalOrders+' ordres · '+blocked+' bloqués','success','scan-logs');state.scanning=false;renderScannerStats();renderFunnel();renderJournal();scheduleNextScan();
 }
 async function executeOrder(sym,setup,timeframe,hybridScore,config){
-    if(!Number.isFinite(config.amount)||config.amount<=0)return false;const tick=getTick(sym.mt5);if(!tick||!Number.isFinite(tick.bid)||!Number.isFinite(tick.ask))return false;
-    const entry=executableEntry(setup.direction,tick),buffer=buildRiskBuffer(tick,setup.atr);if(!Number.isFinite(entry))return false;let sl=Number(setup.sl);sl=setup.direction==='buy'?Math.min(sl,entry-buffer):Math.max(sl,entry+buffer);const risk=Math.abs(entry-sl);if(!(risk>0))return false;const tp=setup.direction==='buy'?entry+risk*CFG.TARGET_RR:entry-risk*CFG.TARGET_RR,geo=validateGeometry(setup.direction,entry,sl,tp,tick);if(!geo.ok)return false;
-    const digits=Number.isInteger(tick.digits)?tick.digits:5,e=roundPrice(entry,digits),s=roundPrice(sl,digits),t=roundPrice(tp,digits),point=Number(tick.point),slPoints=point>0?Math.round(Math.abs(e-s)/point):null,tpPoints=point>0?Math.round(Math.abs(t-e)/point):null;
-    const setupId=setup.setupId,requestId='v11_'+Date.now()+'_'+Math.floor(Math.random()*100000);if(reservedRisk()+config.amount>config.riskExposure)return false;if(!reserveRisk(requestId,config.amount,setupId))return false;
-    const trade=addTrade({symbol:sym.code,mt5Symbol:sym.mt5,direction:setup.direction,riskUSD:config.amount,lot:null,strategyName:'V11 TOP-DOWN H4/H1→M5',hybridScore,entryPrice:e,slPrice:s,tpPrice:t,status:'validating',signalData:{zone:setup.zone,trend:setup.trend,topDownBias:setup.topDownBias,setupId,timeframe,entrySource:setup.direction==='buy'?'ASK':'BID',spread:tick.spread,point:tick.point,slPoints,tpPoints,rr:geo.rr,source:'v11'}});
-    state.pendingOrders.set(requestId,trade.id);const sent=sendMT5({type:'open_order',request_id:requestId,order:{symbol:sym.mt5,direction:setup.direction,risk_usd:config.amount,entry_price:e,sl_price:s,tp_price:t,sl_points:slPoints,tp_points:tpPoints,point:tick.point,tick_size:tick.tick_size,tick_value:tick.tick_value,comment:'SMC-V11-TD-M5',setup_id:setupId}});
-    if(!sent){releaseRisk(requestId);updateTrade(trade.id,{status:'rejected',error:'Send failed'});state.pendingOrders.delete(requestId);return false;}updateTrade(trade.id,{status:'submitted',requestId});cacheSetup(setupId);
-    state.signals.unshift({symbol:sym.code,mt5Symbol:sym.mt5,direction:setup.direction,riskUSD:config.amount,hybridScore,timeframe:'M5',strategies:'V11 H4/H1→M5',reason:setup.topDownBias,entry:e,sl:s,tp:t,rr:geo.rr,time:Date.now()});state.signals=state.signals.slice(0,30);saveSignals();renderSignals();log('🎯 V11 '+sym.mt5+' '+setup.direction.toUpperCase()+' M5 · '+setup.topDownBias+' · RR '+geo.rr.toFixed(2),'hybrid','scan-logs');notifyTelegram('🚀 *V11 SIGNAL M5*\n\n📊 '+sym.mt5+'\n📈 '+setup.direction.toUpperCase()+'\n💰 Risque : '+config.amount.toFixed(2)+'$\n🎯 Score : '+hybridScore+'/100\n📐 RR : '+geo.rr.toFixed(2)+'\n🧭 '+setup.topDownBias);return true;
+    if(!Number.isFinite(config.amount)||config.amount<=0)return false;
+    const tick=getTick(sym.mt5);
+    if(!tick||!Number.isFinite(tick.bid)||!Number.isFinite(tick.ask))return false;
+    const entry=executableEntry(setup.direction,tick);
+    const buffer=buildRiskBuffer(tick,setup.atr);
+    if(!Number.isFinite(entry))return false;
+    let sl=Number(setup.sl);
+    sl=setup.direction==='buy'?Math.min(sl,entry-buffer):Math.max(sl,entry+buffer);
+    if(!(Math.abs(entry-sl)>0))return false;
+    const tp=setup.direction==='buy'?entry+Math.abs(entry-sl)*CFG.TARGET_RR:entry-Math.abs(entry-sl)*CFG.TARGET_RR;
+    const digits=Number.isInteger(tick.digits)?tick.digits:5;
+    const e=roundPrice(entry,digits),s=roundPrice(sl,digits),t=roundPrice(tp,digits);
+    const geo=validateGeometry(setup.direction,e,s,t,tick);
+    if(!geo.ok)return false;
+    const point=Number(tick.point);
+    const slPoints=point>0?Math.round(Math.abs(e-s)/point):null;
+    const tpPoints=point>0?Math.round(Math.abs(t-e)/point):null;
+    const setupId=setup.setupId;
+    const requestId='v11_'+Date.now()+'_'+Math.floor(Math.random()*100000);
+    if(reservedRisk()+config.amount>config.riskExposure)return false;
+    if(!reserveRisk(requestId,config.amount,setupId))return false;
+    const trade=addTrade({
+        symbol:sym.code,mt5Symbol:sym.mt5,direction:setup.direction,riskUSD:config.amount,lot:null,
+        strategyName:'V11 TOP-DOWN H4/H1→M5',hybridScore,entryPrice:e,slPrice:s,tpPrice:t,status:'validating',
+        signalData:{zone:setup.zone,trend:setup.trend,topDownBias:setup.topDownBias,setupId,timeframe,
+            entrySource:setup.direction==='buy'?'ASK':'BID',spread:Math.abs(tick.ask-tick.bid),
+            point:tick.point,slPoints,tpPoints,rr:geo.rr,source:'v11'}
+    });
+    state.pendingOrders.set(requestId,trade.id);
+    const sent=sendMT5({
+        type:'open_order',request_id:requestId,
+        order:{symbol:sym.mt5,direction:setup.direction,risk_usd:config.amount,entry_price:e,sl_price:s,tp_price:t,
+            sl_points:slPoints,tp_points:tpPoints,point:tick.point,tick_size:tick.tick_size,tick_value:tick.tick_value,
+            comment:'SMC-V11-TD-M5',setup_id:setupId}
+    });
+    if(!sent){
+        releaseRisk(requestId);
+        updateTrade(trade.id,{status:'rejected',error:'Send failed'});
+        state.pendingOrders.delete(requestId);
+        return false;
+    }
+    updateTrade(trade.id,{status:'submitted',requestId});
+    cacheSetup(setupId);
+    state.signals.unshift({
+        symbol:sym.code,mt5Symbol:sym.mt5,direction:setup.direction,riskUSD:config.amount,hybridScore,
+        timeframe:'M5',strategies:'V11 H4/H1→M5',reason:setup.topDownBias,entry:e,sl:s,tp:t,rr:geo.rr,time:Date.now()
+    });
+    state.signals=state.signals.slice(0,30);
+    saveSignals();renderSignals();
+    log('🎯 V11 '+sym.mt5+' '+setup.direction.toUpperCase()+' M5 · '+setup.topDownBias+' · RR '+geo.rr.toFixed(2),'hybrid','scan-logs');
+    notifyTelegram('🚀 *V11 SIGNAL M5*\n\n📊 '+sym.mt5+'\n📈 '+setup.direction.toUpperCase()+'\n💰 Risque : '+config.amount.toFixed(2)+'$\n🎯 Score : '+hybridScore+'/100\n📐 RR : '+geo.rr.toFixed(2)+'\n🧭 '+setup.topDownBias);
+    return true;
 }
-
 function scheduleNextScan() {
     if (!state.scannerActive) return;
     state.nextScanAt = Date.now() + CFG.SCAN_INTERVAL_MS;
@@ -1529,12 +1474,9 @@ function scheduleNextScan() {
     }, 1000);
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// RENDERS SCANNER
-// ═══════════════════════════════════════════════════════════════════
 function renderScannerStats() {
     $('scanner-signals').textContent = state.signals.length;
-    $('scanner-orders').textContent = state.trades.filter(t => t.status === 'open' || t.status === 'sent' || t.status === 'pending').length;
+    $('scanner-orders').textContent = state.trades.filter(t => ['open','sent','pending','validating','submitted'].includes(t.status)).length;
 }
 function renderFunnel() {
     const f = state.funnel;
@@ -1600,20 +1542,31 @@ function renderTop5() {
     }).join('');
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// RISK GUARD
-// ═══════════════════════════════════════════════════════════════════
-function checkRiskGuard(config){if(state.killSwitch)return{ok:false,reason:'KILL_SWITCH'};if(!state.account||!Number.isFinite(state.account.balance)||state.account.balance<=0)return{ok:false,reason:'ACCOUNT_UNAVAILABLE'};const today=new Date().toDateString(),todayTrades=getClosedTrades().filter(t=>new Date(t.closeTime||t.createdAt).toDateString()===today),dailyPnl=todayTrades.reduce((s,t)=>s+(Number(t.profit)||0),0);if(dailyPnl<=-config.riskDaily)return{ok:false,reason:'DAILY_LOSS_LIMIT',dailyPnl};const openTrades=getOpenTrades(),openRisk=openTrades.reduce((s,t)=>s+(Number(t.riskUSD)||0),0),pendingRisk=reservedRisk(),exposure=openRisk+pendingRisk;if(exposure+config.amount>config.riskExposure)return{ok:false,reason:'MAX_EXPOSURE',dailyPnl,exposure};if(openTrades.length+state.riskReservations.size>=config.maxpos)return{ok:false,reason:'MAX_POSITIONS',dailyPnl,exposure};return{ok:true,dailyPnl,exposure,openRisk,pendingRisk};}
-
+function checkRiskGuard(config){
+    if(state.killSwitch)return{ok:false,reason:'KILL_SWITCH'};
+    if(!state.account||!Number.isFinite(state.account.balance)||state.account.balance<=0)return{ok:false,reason:'ACCOUNT_UNAVAILABLE'};
+    const today=new Date().toDateString();
+    const todayTrades=getClosedTrades().filter(t=>new Date(t.closeTime||t.createdAt).toDateString()===today);
+    const dailyPnl=todayTrades.reduce((s,t)=>s+(Number(t.profit)||0),0);
+    const dailyLimit=Math.max(0,Number(config.riskDaily)||0);
+    if(dailyLimit>0 && dailyPnl<=-dailyLimit)return{ok:false,reason:'DAILY_LOSS_LIMIT',dailyPnl};
+    const openTrades=getOpenTrades();
+    const openRisk=openTrades.reduce((s,t)=>s+(Number(t.riskUSD)||0),0);
+    const pendingRisk=reservedRisk();
+    const exposure=openRisk+pendingRisk;
+    const amount=Number(config.amount)||0;
+    const maxExposure=Math.max(0,Number(config.riskExposure)||0);
+    const maxPositions=Math.max(1,parseInt(config.maxpos,10)||1);
+    if(maxExposure>0 && exposure+amount>maxExposure)return{ok:false,reason:'MAX_EXPOSURE',dailyPnl,exposure};
+    if(openTrades.length+state.riskReservations.size>=maxPositions)return{ok:false,reason:'MAX_POSITIONS',dailyPnl,exposure};
+    return{ok:true,dailyPnl,exposure,openRisk,pendingRisk};
+}
 </script>
 <script>
 // ═══════════════════════════════════════════════════════════════════
 // PARTIE 4/4 — ANALYSE + JOURNAL + INIT
 // ═══════════════════════════════════════════════════════════════════
 
-// ═══════════════════════════════════════════════════════════════════
-// INIT UNIVERS SELECTOR
-// ═══════════════════════════════════════════════════════════════════
 function initUniverseSelector() {
     const btns = document.querySelectorAll('.universe-btn');
     btns.forEach(btn => {
@@ -1638,9 +1591,6 @@ function initSymbolSelects() {
     if (countEl) countEl.textContent = universe.name + ' · ' + universe.indices.length + ' instruments disponibles';
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// ANALYSE
-// ═══════════════════════════════════════════════════════════════════
 async function runAnalyse() {
     const symbolMT5 = $('analyse-symbol').value;
     const tf = $('analyse-tf').value;
@@ -1653,20 +1603,15 @@ async function runAnalyse() {
     window._currentAnalyseSignal = null;
 
     try {
-        // 1. Graphique sur le TF choisi
         const candlesMain = await requestCandles(symbolMT5, tf, 500);
         $('analyse-results').style.display = 'block';
         drawCandles('analyse-canvas', candlesMain);
 
-        // 2. Analyse multi-TF
         const mtf = await analyzeMultiTF(symbolMT5);
-
-        // 3. Signal SMC sur le TF principal
         const mainData = mtf[tf];
         if (!mainData) { log('⏸ Pas de données ' + tf, 'warn'); return; }
         const setup = mainData.setup;
 
-        // 4. Affichage du signal SMC
         if (setup && setup.hasSignal) {
             const validTfs = Object.entries(mtf).filter(([t, r]) => r !== null && r.bestWR >= 40 && r.bestPF >= 0.5);
             const score = Math.round((mainData.bestWR + mainData.bestPF * 10) / 2);
@@ -1674,15 +1619,7 @@ async function runAnalyse() {
             const symObj = UNIVERSES[state.universe].indices.find(s => s.mt5 === symbolMT5);
             const symCode = symObj ? symObj.code : symbolMT5;
 
-            window._currentAnalyseSignal = {
-                symbolCode: symCode,
-                symbolMT5: symbolMT5,
-                direction: setup.direction,
-                entry: setup.entry, sl: setup.sl, tp: setup.tp,
-                zone: setup.zone, trend: setup.trend,
-                hybridScore: hybridScore,
-                timeframe: tf
-            };
+            window._currentAnalyseSignal = { symbolCode: symCode, symbolMT5, direction: setup.direction, entry: setup.entry, sl: setup.sl, tp: setup.tp, zone: setup.zone, trend: setup.trend, hybridScore, timeframe: tf };
 
             $('analyse-signal').innerHTML =
                 '<div class="trade-card pending" style="border-left-color:' + (setup.direction === 'buy' ? '#16a34a' : '#dc2626') + ';">' +
@@ -1707,19 +1644,16 @@ async function runAnalyse() {
             log('⏸ Pas de signal ' + symbolMT5 + ' ' + tf, 'warn');
         }
 
-        // 5. Affichage multi-TF
         const timeframes = ['M5', 'H1', 'H4', 'D1'];
         let html = '<div style="overflow-x:auto;"><table class="matrix-table"><thead><tr><th>Strat</th>';
         for (const t of timeframes) html += '<th>' + t + '</th>';
         html += '</tr></thead><tbody>';
-
         for (const strat of STRATEGIES) {
             html += '<tr><td class="symbol">' + strat.name.replace('Stratégie ', 'S') + '</td>';
             for (const t of timeframes) {
                 const r = mtf[t];
-                if (!r || !r.stratResults[strat.id]) {
-                    html += '<td>—</td>';
-                } else {
+                if (!r || !r.stratResults[strat.id]) html += '<td>—</td>';
+                else {
                     const s = r.stratResults[strat.id];
                     const wr = s.wr;
                     const cls = wr >= 60 ? 'wr-green' : wr >= 50 ? 'wr-blue' : wr >= 40 ? 'wr-orange' : 'wr-red';
@@ -1778,9 +1712,6 @@ function drawCandles(canvasId, candles) {
     });
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// JOURNAL
-// ═══════════════════════════════════════════════════════════════════
 function renderJournal() {
     const open = getOpenTrades();
     const closed = getClosedTrades();
@@ -1797,14 +1728,13 @@ function renderTradeCard(t) {
     const dirClass = t.direction === 'buy' ? 'buy' : 'sell';
     const statusClass = t.status === 'open' ? 'open' : t.status === 'sent' || t.status === 'pending' ? 'pending' : t.result === 'win' ? 'win' : t.result === 'loss' ? 'loss' : 'pending';
     const dirLabel = t.direction === 'buy' ? '🟢 ACHAT' : '🔴 VENTE';
-    const statusLabel = t.status === 'open' ? '🟢 OUVERT' : t.status === 'sent' ? '🟠 ENVOYÉ' : t.status === 'pending' ? '⏳ EN ATTENTE' : t.status === 'rejected' ? '❌ REJETÉ' : t.result === 'win' ? '✅ GAGNÉ' : t.result === 'loss' ? '❌ PERDU' : '⚪ CLÔTURÉ';
+    const statusLabel = t.status === 'open' ? '🟢 OUVERT' : t.status === 'sent' ? '🟠 ENVOYÉ' : t.status === 'submitted' || t.status === 'validating' ? '🟡 VALIDATION' : t.status === 'pending' ? '⏳ EN ATTENTE' : t.status === 'uncertain' ? '⚠️ INCERTAIN' : t.status === 'rejected' ? '❌ REJETÉ' : t.result === 'win' ? '✅ GAGNÉ' : t.result === 'loss' ? '❌ PERDU' : '⚪ CLÔTURÉ';
     const profit = t.profit != null ? (t.profit >= 0 ? '+' : '') + t.profit.toFixed(2) + ' $' : '—';
-    const profitColor = t.profit > 0 ? '#16a34a' : t.profit < 0 ? '#dc2626' : '#9ca3af';
     const riskInfo = t.riskUSD ? t.riskUSD.toFixed(2) + '$' : '—';
     const lotInfo = t.lot != null ? t.lot : '—';
 
     let trackingHtml = '';
-    if ((t.status === 'open' || t.status === 'sent') && t.entryPrice && t.slPrice && t.tpPrice) {
+    if (['open','sent','submitted'].includes(t.status) && t.entryPrice && t.slPrice && t.tpPrice) {
         const tick = state.trackingTicks.get(t.mt5Symbol);
         const currentPrice = tick && tick.quote ? tick.quote : null;
         const prog = computeTradeProgress(t, currentPrice);
@@ -1848,9 +1778,6 @@ function renderTradeCard(t) {
     '</div>';
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// STATS
-// ═══════════════════════════════════════════════════════════════════
 function renderStats() {
     const closed = getClosedTrades().filter(t => t.status === 'closed');
     const wins = closed.filter(t => t.result === 'win').length;
@@ -1914,9 +1841,6 @@ function renderRiskGuard() {
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// TAB SWITCHING
-// ═══════════════════════════════════════════════════════════════════
 document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -1929,9 +1853,6 @@ document.querySelectorAll('.tab').forEach(tab => {
     });
 });
 
-// ═══════════════════════════════════════════════════════════════════
-// EVENTS
-// ═══════════════════════════════════════════════════════════════════
 function bindEvents() {
     $('btn-analyse').addEventListener('click', runAnalyse);
     $('btn-analyse-full').addEventListener('click', runAnalyse);
@@ -1980,9 +1901,6 @@ function bindEvents() {
     window.addEventListener('beforeunload', () => { stopTracking(); stopPositionPoll(); });
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════════════════════
 function init() {
     loadConfig();
     loadTrades();
@@ -2006,17 +1924,14 @@ function init() {
     log('📊 V11 : H4/H1 direction → M5 trigger + D1 contexte', 'hybrid');
     log('🔒 V11 : anti-doublon setup + réservation risque + état ordre', 'hybrid');
 
-    // Auto-connexion
     window.addEventListener('load', () => {
         setTimeout(() => { connectMT5(); }, 500);
     });
 
-    // Reprise scanner
     if (localStorage.getItem(STORAGE.scanner) === '1') {
         setTimeout(() => { if (state.mt5Connected) startScanner(); }, 3000);
     }
 
-    // Service Worker
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js')
@@ -2025,7 +1940,6 @@ function init() {
         });
     }
 
-    // Démarre le tracking
     startTracking();
 }
 
