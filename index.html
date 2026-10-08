@@ -607,7 +607,6 @@ function handleMT5Message(data) {
             t.volume_min = Number(data.volume_min) || null; t.volume_max = Number(data.volume_max) || null; t.volume_step = Number(data.volume_step) || null;
             t.time = data.time; t.subscribed = true;
             state.trackingTicks.set(tickData.symbol, t);
-            // Résoudre la promesse si elle existe
             if (tickData.resolve) tickData.resolve(t);
             state.pendingTicks.delete(data.request_id);
         }
@@ -1360,9 +1359,6 @@ function bindEvents() {
     });
     $('btn-clear').addEventListener('click', () => { if (!confirm('Effacer TOUT ?')) return; state.trades = []; state.signals = []; state.signalCache = {}; saveTrades(); saveSignals(); saveCache(); renderJournal(); renderSignals(); renderScannerStats(); renderFunnel(); log('🗑️ Effacé', 'warn', 'cfg-logs'); });
 
-    // ═════════════════════════════════════════════════════════════════
-    // BOUTON TEST ORDRE 5$ — FONCTIONNEL (XAUUSD par défaut)
-    // ═════════════════════════════════════════════════════════════════
     $('btn-test-order').addEventListener('click', async () => {
         const symbolMT5 = $('analyse-symbol').value;
         if (!symbolMT5) { log('❌ Sélectionnez un symbole dans Analyse', 'error', 'cfg-logs'); return; }
@@ -1450,13 +1446,12 @@ function bindEvents() {
             });
 
             if (sent) log('📤 Ordre envoyé. Attente de la réponse MT5…', 'success', 'cfg-logs');
-            else { log('❌ Échec de l\\'envoi', 'error', 'cfg-logs'); updateTrade(trade.id, { status: 'rejected', error: 'Send failed' }); }
+            else { log('❌ Échec de l\'envoi', 'error', 'cfg-logs'); updateTrade(trade.id, { status: 'rejected', error: 'Send failed' }); }
 
         } catch (err) {
             log('❌ Erreur : ' + err.message, 'error', 'cfg-logs');
         }
     });
-    // ═════════════════════════════════════════════════════════════════
 
     ['risk-daily', 'risk-exposure', 'scan-maxpos'].forEach(id => $(id).addEventListener('change', debounce(saveRisk, 400)));
     window.addEventListener('beforeunload', () => { stopTracking(); stopPositionPoll(); });
