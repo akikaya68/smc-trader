@@ -380,8 +380,7 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
         <div class="section-title">📋 Logs</div>
         <div class="logs" id="cfg-logs"></div>
     </div>
-</div>
-<script>
+    <script>
 // ═══════════════════════════════════════════════════════════════════
 // PARTIE 2/4 — CONFIG + STATE + BRIDGE MT5
 // ═══════════════════════════════════════════════════════════════════
@@ -430,26 +429,26 @@ const UNIVERSES = {
     { code: 'RDBULL', mt5: 'Bull Market Index', display: 'Bull Market' },
     { code: 'RDBEAR', mt5: 'Bear Market Index', display: 'Bear Market' } ]},
     forex: { name: '💱 Forex', indices: [
-        { code: 'EURUSD', mt5: 'EURUSD', display: 'EUR/USD' },
-        { code: 'GBPUSD', mt5: 'GBPUSD', display: 'GBP/USD' },
-        { code: 'USDJPY', mt5: 'USDJPY', display: 'USD/JPY' },
-        { code: 'XAUUSD', mt5: 'XAUUSD', display: 'XAU/USD (Or)' },
-        { code: 'XAGUSD', mt5: 'XAGUSD', display: 'XAG/USD (Argent)' },
-        { code: 'BTCUSD', mt5: 'BTCUSD', display: 'BTC/USD' } ]},
+        { code: 'EURUSD', mt5: 'EURUSD', display: 'EURUSD' },
+        { code: 'GBPUSD', mt5: 'GBPUSD', display: 'GBPUSD' },
+        { code: 'USDJPY', mt5: 'USDJPY', display: 'USDJPY' },
+        { code: 'XAUUSD', mt5: 'XAUUSD', display: 'XAUUSD' },
+        { code: 'XAGUSD', mt5: 'XAGUSD', display: 'XAGUSD' },
+        { code: 'BTCUSD', mt5: 'BTCUSD', display: 'BTCUSD' } ]},
     crypto: { name: '🪙 Crypto', indices: [
-        { code: 'BTCUSD', mt5: 'BTCUSD', display: 'Bitcoin' },
-        { code: 'ETHUSD', mt5: 'ETHUSD', display: 'Ethereum' },
-        { code: 'BCHUSD', mt5: 'BCHUSD', display: 'Bitcoin Cash' },
-        { code: 'LTCUSD', mt5: 'LTCUSD', display: 'Litecoin' },
-        { code: 'XRPUSD', mt5: 'XRPUSD', display: 'Ripple' },
-        { code: 'ADAUSD', mt5: 'ADAUSD', display: 'Cardano' },
-        { code: 'SOLUSD', mt5: 'SOLUSD', display: 'Solana' },
-        { code: 'DOGUSD', mt5: 'DOGUSD', display: 'Dogecoin' },
-        { code: 'DOTUSD', mt5: 'DOTUSD', display: 'Polkadot' },
-        { code: 'LNKUSD', mt5: 'LNKUSD', display: 'Chainlink' } ]},
+        { code: 'BTCUSD', mt5: 'BTCUSD', display: 'BTCUSD' },
+        { code: 'ETHUSD', mt5: 'ETHUSD', display: 'ETHUSD' },
+        { code: 'BCHUSD', mt5: 'BCHUSD', display: 'BCHUSD' },
+        { code: 'LTCUSD', mt5: 'LTCUSD', display: 'LTCUSD' },
+        { code: 'XRPUSD', mt5: 'XRPUSD', display: 'XRPUSD' },
+        { code: 'ADAUSD', mt5: 'ADAUSD', display: 'ADAUSD' },
+        { code: 'SOLUSD', mt5: 'SOLUSD', display: 'SOLUSD' },
+        { code: 'DOGUSD', mt5: 'DOGUSD', display: 'DOGUSD' },
+        { code: 'DOTUSD', mt5: 'DOTUSD', display: 'DOTUSD' },
+        { code: 'LNKUSD', mt5: 'LNKUSD', display: 'LNKUSD' } ]},
     metals: { name: '🥇 Métaux', indices: [
-        { code: 'XAUUSD', mt5: 'XAUUSD', display: 'Or (XAU/USD)' },
-        { code: 'XAGUSD', mt5: 'XAGUSD', display: 'Argent (XAG/USD)' } ]}
+        { code: 'XAUUSD', mt5: 'XAUUSD', display: 'XAUUSD' },
+        { code: 'XAGUSD', mt5: 'XAGUSD', display: 'XAGUSD' } ]}
 };
 UNIVERSES.all = { name: '🌐 Tous les instruments', indices: Object.values(UNIVERSES).flatMap(u => u.indices).filter((s, i, arr) => arr.findIndex(x => x.code === s.code && x.mt5 === s.mt5) === i) };
 
@@ -1150,6 +1149,7 @@ function checkRiskGuard(config){
     return{ok:true,dailyPnl,exposure,openRisk,pendingRisk};
 }
 </script>
+</div>
 <script>
 // ═══════════════════════════════════════════════════════════════════
 // PARTIE 4/4 — ANALYSE + JOURNAL + INIT
@@ -1202,7 +1202,7 @@ async function runAnalyse() {
             const symObj = UNIVERSES[state.universe].indices.find(s => s.mt5 === symbolMT5);
             const symCode = symObj ? symObj.code : symbolMT5;
             window._currentAnalyseSignal = { symbolCode: symCode, symbolMT5, direction: setup.direction, entry: setup.entry, sl: setup.sl, tp: setup.tp, zone: setup.zone, trend: setup.trend, hybridScore, timeframe: tf };
-            $('analyse-signal').innerHTML = '<div class="trade-card pending" style="border-left-color:' + (setup.direction === 'buy' ? '#16a34a' : '#dc2626') + ';"><div class="trade-header"><span class="trade-symbol">' + escapeHtml(symbolMT5) + '</span><span class="trade-badge ' + setup.direction + '">' + setup.direction.toUpperCase() + '</span></div><div class="trade-info"><div><div class="label">Entry</div><div class="value">' + setup.entry.toFixed(5) + '</div></div><div><div class="label">SL</div><div class="value" style="color:#dc2626;">' + setup.sl.toFixed(5) + '</div></div><div><div class="label">TP</div><div class="value" style="color:#16a34a;">' + setup.tp.toFixed(5) + '</div></div><div><div class="label">RR</div><div class="value">1:3</div></div></div><div class="trade-info" style="margin-top:0.3rem;"><div><div class="label">Zone</div><div class="value">' + setup.zone + '</div></div><div><div class="label">Trend</div><div class="value">' + setup.trend + '</div></div><div><div class="label">Score</div><div class="value" style="color:#a855f7;">' + hybridScore + '/100</div></div><div><div class="label">TF</div><div class="value">' + tf + '</div></div></div><div style="font-size:0.68rem;color:#06b6d4;margin-top:0.4rem;">✅ ' + validTfs.length + '/4 TF valides</div></div>';
+            $('analyse-signal').innerHTML = '<div class="trade-card pending" style="border-left-color:' + (setup.direction === 'buy' ? '#16a34a' : '#dc2626') + ';"><div class="trade-header"><span class="trade-symbol">' + escapeHtml(symbolMT5) + '</span><span class="trade-badge ' + setup.direction + '">' + setup.direction.toUpperCase() + '</span></div><div class="trade-info"><div><div class="label">Entry</div><div class="value">' + setup.entry.toFixed(5) + '</div></div><div><div class="label">SL</div><div class="value" style="color:#dc2626;">' + setup.sl.toFixed(5) + '</div></div><div><div class="label">TP</div><div class="value" style="color:#16a34a;">' + setup.tp.toFixed(5) + '</div></div><div><div class="label">RR</div><div class="value">1:3</div></div></div><div class="trade-info" style="margin-top:0.3rem;"><div><div class="label">Zone</div><div class="value">' + setup.zone + '</div></div><div><div class="label">Trend</div><div class="value">' + setup.trend + '</div></div><div><div class="label">Score</div><div class="value" style="color:#a855f7;">' + hybridScore + '/100</div></div><div><div class="label">TF</div><div class="value">' + tf + '</div></div></div><div style="font-size:0.68rem;color:#06b6d4;margin-top:0.4rem;">✅ ' + validTfs.length + '/4 TF valides</div><button class="primary" id="btn-send-analysis-order" style="width:100%;margin-top:0.5rem;">📤 Envoyer cet ordre à MT5</button></div>';
             log('🎯 Signal SMC ' + setup.direction + ' ' + symbolMT5 + ' ' + tf, 'signal');
         } else {
             $('analyse-signal').innerHTML = '<div class="empty">⏸ Pas de signal SMC sur ' + escapeHtml(symbolMT5) + ' ' + tf + '</div>';
@@ -1359,14 +1359,65 @@ function bindEvents() {
     });
     $('btn-clear').addEventListener('click', () => { if (!confirm('Effacer TOUT ?')) return; state.trades = []; state.signals = []; state.signalCache = {}; saveTrades(); saveSignals(); saveCache(); renderJournal(); renderSignals(); renderScannerStats(); renderFunnel(); log('🗑️ Effacé', 'warn', 'cfg-logs'); });
 
+    // ═══ Bouton Envoyer depuis Analyse ═══
+    window._sendAnalysisOrder = async function() {
+        const sig = window._currentAnalyseSignal;
+        if (!sig) { log('❌ Aucun signal à envoyer', 'error', 'logs'); return; }
+        if (!state.mt5Connected) { log('❌ Bridge MT5 non connecté', 'error', 'logs'); return; }
+        log('🧪 Envoi ordre Analyse sur ' + sig.symbolMT5, 'info', 'logs');
+        try {
+            const tick = await requestTick(sig.symbolMT5);
+            const ask = parseFloat(tick.ask), bid = parseFloat(tick.bid);
+            const point = parseFloat(tick.point), tickValue = parseFloat(tick.tick_value);
+            const tickSize = parseFloat(tick.tick_size), digits = parseInt(tick.digits);
+            const vmin = parseFloat(tick.volume_min) || 0.01;
+            const vmax = parseFloat(tick.volume_max) || 100;
+            const vstep = parseFloat(tick.volume_step) || 0.01;
+            if (!Number.isFinite(ask) || !Number.isFinite(bid)) { log('❌ Prix invalide', 'error', 'logs'); return; }
+            const candles = await requestCandles(sig.symbolMT5, 'M5', 100);
+            const atrArr = calculateATR(candles, 14);
+            const atr = atrArr[atrArr.length - 1];
+            if (!atr || atr <= 0) { log('❌ ATR invalide', 'error', 'logs'); return; }
+            const direction = sig.direction;
+            const entry = direction === 'buy' ? ask : bid;
+            const sl = direction === 'buy' ? entry - atr * 1.0 : entry + atr * 1.0;
+            const tp = direction === 'buy' ? entry + atr * 3.0 : entry - atr * 3.0;
+            const riskUSD = state.account && state.account.balance ? (state.account.balance * CFG.RISK_PCT / 100) : 5;
+            const slDistance = Math.abs(entry - sl);
+            const slPoints = slDistance / point;
+            const valuePerPointPerLot = tickValue * (point / tickSize);
+            const riskPerLot = slPoints * valuePerPointPerLot;
+            let lot = riskUSD / riskPerLot;
+            lot = Math.round(lot / vstep) * vstep;
+            lot = Math.max(vmin, Math.min(vmax, lot));
+            lot = parseFloat(lot.toFixed(2));
+            log('🎯 ' + direction.toUpperCase() + ' ' + lot + ' lots @ ' + entry.toFixed(digits), 'signal', 'logs');
+            log('   SL=' + sl.toFixed(digits) + ' | TP=' + tp.toFixed(digits), 'info', 'logs');
+            log('   Risque : ' + (riskPerLot * lot).toFixed(2) + ' USD', 'info', 'logs');
+            const requestId = 'ana_' + Date.now();
+            const mult = Math.pow(10, digits);
+            const e = Math.round(entry * mult) / mult;
+            const s = Math.round(sl * mult) / mult;
+            const t = Math.round(tp * mult) / mult;
+            const trade = addTrade({ symbol: sig.symbolCode || sig.symbolMT5, mt5Symbol: sig.symbolMT5, direction: direction, riskUSD: riskUSD, lot: lot, strategyName: 'ANALYSE MANUELLE', hybridScore: sig.hybridScore, entryPrice: e, slPrice: s, tpPrice: t, status: 'validating', signalData: { source: 'analysis-button' } });
+            state.pendingOrders.set(requestId, trade.id);
+            const sent = sendMT5({ type: 'open_order', request_id: requestId, order: { symbol: sig.symbolMT5, direction: direction, risk_usd: riskUSD, entry_price: e, sl_price: s, tp_price: t, sl_points: Math.round(slPoints), comment: 'SMC-ANALYSE-' + sig.symbolMT5 } });
+            if (sent) log('📤 Ordre envoyé. Attente MT5…', 'success', 'logs');
+            else { log('❌ Échec de l\'envoi', 'error', 'logs'); updateTrade(trade.id, { status: 'rejected', error: 'Send failed' }); }
+        } catch (err) { log('❌ Erreur : ' + err.message, 'error', 'logs'); }
+    };
+    document.addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'btn-send-analysis-order') {
+            window._sendAnalysisOrder();
+        }
+    });
+
     $('btn-test-order').addEventListener('click', async () => {
         const symbolMT5 = $('analyse-symbol').value;
         if (!symbolMT5) { log('❌ Sélectionnez un symbole dans Analyse', 'error', 'cfg-logs'); return; }
         if (!state.mt5Connected) { log('❌ Bridge MT5 non connecté', 'error', 'cfg-logs'); return; }
-
         log('🧪 Test ordre 5$ sur ' + symbolMT5, 'info', 'cfg-logs');
         log('⏳ Récupération du prix et des bougies…', 'info', 'cfg-logs');
-
         try {
             const tick = await requestTick(symbolMT5);
             const ask = parseFloat(tick.ask);
@@ -1378,79 +1429,43 @@ function bindEvents() {
             const vmin = parseFloat(tick.volume_min) || 0.01;
             const vmax = parseFloat(tick.volume_max) || 100;
             const vstep = parseFloat(tick.volume_step) || 0.01;
-
-            if (!Number.isFinite(ask) || !Number.isFinite(bid)) {
-                log('❌ Prix invalide reçu', 'error', 'cfg-logs'); return;
-            }
+            if (!Number.isFinite(ask) || !Number.isFinite(bid)) { log('❌ Prix invalide reçu', 'error', 'cfg-logs'); return; }
             log('💰 Prix : bid=' + bid.toFixed(digits) + ' ask=' + ask.toFixed(digits), 'data', 'cfg-logs');
-
             const candles = await requestCandles(symbolMT5, 'M5', 100);
             if (!candles || candles.length < 20) { log('❌ Pas assez de bougies', 'error', 'cfg-logs'); return; }
             const atrArr = calculateATR(candles, 14);
             const atr = atrArr[atrArr.length - 1];
             if (!atr || atr <= 0) { log('❌ ATR invalide', 'error', 'cfg-logs'); return; }
             log('📊 ATR(14) M5 : ' + atr.toFixed(digits), 'data', 'cfg-logs');
-
             const direction = 'buy';
             const entry = ask;
             const sl = entry - atr * 1.0;
             const tp = entry + atr * 3.0;
             const riskUSD = 5;
-
             const slDistance = Math.abs(entry - sl);
             if (slDistance <= 0) { log('❌ SL invalide', 'error', 'cfg-logs'); return; }
-
             const slPoints = slDistance / point;
             const valuePerPointPerLot = tickValue * (point / tickSize);
             const riskPerLot = slPoints * valuePerPointPerLot;
             if (riskPerLot <= 0) { log('❌ Calcul du lot impossible', 'error', 'cfg-logs'); return; }
-
             let lot = riskUSD / riskPerLot;
             lot = Math.round(lot / vstep) * vstep;
             lot = Math.max(vmin, Math.min(vmax, lot));
             lot = parseFloat(lot.toFixed(2));
-
             log('🎯 Ordre : ' + direction.toUpperCase() + ' ' + lot + ' lots @ ' + entry.toFixed(digits), 'info', 'cfg-logs');
             log('   SL=' + sl.toFixed(digits) + ' (' + slPoints.toFixed(0) + ' pts) | TP=' + tp.toFixed(digits), 'info', 'cfg-logs');
             log('   Risque calculé : ' + (riskPerLot * lot).toFixed(2) + ' USD', 'info', 'cfg-logs');
-
             const requestId = 'test_' + Date.now();
             const mult = Math.pow(10, digits);
             const e = Math.round(entry * mult) / mult;
             const s = Math.round(sl * mult) / mult;
             const t = Math.round(tp * mult) / mult;
-
-            const trade = addTrade({
-                symbol: symbolMT5, mt5Symbol: symbolMT5,
-                direction: direction, riskUSD: riskUSD, lot: lot,
-                strategyName: 'TEST MANUEL', hybridScore: 100,
-                entryPrice: e, slPrice: s, tpPrice: t,
-                status: 'validating',
-                signalData: { source: 'test-button', comment: 'TEST_5USD' }
-            });
+            const trade = addTrade({ symbol: symbolMT5, mt5Symbol: symbolMT5, direction: direction, riskUSD: riskUSD, lot: lot, strategyName: 'TEST MANUEL', hybridScore: 100, entryPrice: e, slPrice: s, tpPrice: t, status: 'validating', signalData: { source: 'test-button', comment: 'TEST_5USD' } });
             state.pendingOrders.set(requestId, trade.id);
-
-            const sent = sendMT5({
-                type: 'open_order',
-                request_id: requestId,
-                order: {
-                    symbol: symbolMT5,
-                    direction: direction,
-                    risk_usd: riskUSD,
-                    entry_price: e,
-                    sl_price: s,
-                    tp_price: t,
-                    sl_points: Math.round(slPoints),
-                    comment: 'TEST_5USD'
-                }
-            });
-
+            const sent = sendMT5({ type: 'open_order', request_id: requestId, order: { symbol: symbolMT5, direction: direction, risk_usd: riskUSD, entry_price: e, sl_price: s, tp_price: t, sl_points: Math.round(slPoints), comment: 'TEST_5USD' } });
             if (sent) log('📤 Ordre envoyé. Attente de la réponse MT5…', 'success', 'cfg-logs');
             else { log('❌ Échec de l\'envoi', 'error', 'cfg-logs'); updateTrade(trade.id, { status: 'rejected', error: 'Send failed' }); }
-
-        } catch (err) {
-            log('❌ Erreur : ' + err.message, 'error', 'cfg-logs');
-        }
+        } catch (err) { log('❌ Erreur : ' + err.message, 'error', 'cfg-logs'); }
     });
 
     ['risk-daily', 'risk-exposure', 'scan-maxpos'].forEach(id => $(id).addEventListener('change', debounce(saveRisk, 400)));
