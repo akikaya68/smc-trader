@@ -5,14 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' wss: https:; img-src 'self' data: https:;">
 <title>SMC Trader Pro v11</title>
-<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f1419">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="SMC Trader">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 :root {
@@ -360,7 +356,7 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
     <div class="section">
         <div class="section-title">📱 Telegram</div>
         <label>Bot Token</label>
-        <input type="text" id="cfg-tg-token">
+        <input type="password" id="cfg-tg-token" autocomplete="off">
         <label>Chat ID</label>
         <input type="text" id="cfg-tg-chatid">
         <button class="info small" id="btn-test-tg">🧪 Tester</button>
@@ -368,7 +364,7 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
     <div class="section">
         <div class="section-title">🧠 DeepSeek</div>
         <label>API Key</label>
-        <input type="text" id="cfg-ds-key">
+        <input type="password" id="cfg-ds-key" autocomplete="off">
         <button class="info small" id="btn-test-ds">🧪 Tester</button>
     </div>
     <div class="section">
@@ -380,7 +376,8 @@ button.small { font-size: 0.68rem; padding: 0.4rem 0.7rem; }
         <div class="section-title">📋 Logs</div>
         <div class="logs" id="cfg-logs"></div>
     </div>
-    <script>
+</div>
+<script>
 // ═══════════════════════════════════════════════════════════════════
 // PARTIE 2/4 — CONFIG + STATE + BRIDGE MT5
 // ═══════════════════════════════════════════════════════════════════
@@ -454,7 +451,7 @@ UNIVERSES.all = { name: '🌐 Tous les instruments', indices: Object.values(UNIV
 
 const DEFAULTS = {
     wsUrl: 'wss://smc-bridge-q7vj.onrender.com',
-    wsToken: 'smc_v5_MonTokenSecret_2026_xK9pL3mNqW8',
+    wsToken: '',
     tgToken: '', tgChat: '', dsKey: ''
 };
 
@@ -481,7 +478,7 @@ const CFG = {
 
 const state = {
     universe: 'deriv', mt5Ws: null, mt5Connected: false,
-    mt5ReconnectAttempts: 0, mt5ReconnectTimer: null,
+    mt5ReconnectAttempts: 0, mt5ReconnectTimer: null, orderSubmissionActive: false,
     pendingOrders: new Map(), riskReservations: new Map(),
     pendingTicks: new Map(), pendingCandles: new Map(),
     account: null, mt5Positions: [], positionPollTimer: null,
@@ -541,7 +538,10 @@ function connectMT5() {
     if (state.mt5Ws) { try { state.mt5Ws.close(); } catch (e) {} }
     saveConfig();
     const url = $('cfg-ws-url').value.trim();
+    const token = $('cfg-ws-token').value.trim();
     if (!url) { log('❌ URL bridge manquante', 'error', 'cfg-logs'); return; }
+    if (!/^wss:\/\//i.test(url)) { log('❌ Utilisez une URL WebSocket sécurisée (wss://).', 'error', 'cfg-logs'); return; }
+    if (!token) { log('❌ Token du bridge manquant. Saisissez-le dans Config.', 'error', 'cfg-logs'); return; }
     updateMT5Card('connecting', 'Connexion…', url);
     log('🔌 Connexion bridge : ' + url, 'info', 'cfg-logs');
     try { state.mt5Ws = new WebSocket(url); }
@@ -552,7 +552,7 @@ function connectMT5() {
         state.mt5ReconnectAttempts = 0;
         updateMT5Card('connected', 'MT5 connecté', 'Bridge actif');
         log('✅ Bridge MT5 connecté', 'success', 'cfg-logs');
-        const token = $('cfg-ws-token').value.trim() || DEFAULTS.wsToken;
+        const token = $('cfg-ws-token').value.trim();
         state.mt5Ws.send(JSON.stringify({ role: 'app', token: token }));
         log('🔐 Auth envoyée', 'info', 'cfg-logs');
         $('btn-connect-mt5').disabled = true;
@@ -629,7 +629,11 @@ function handleAccountResponse(data) {
     log('💰 Compte ' + data.login + ' · Balance ' + data.balance + ' ' + data.currency, 'success', 'cfg-logs');
 }
 function handlePositionsResponse(data) {
-    state.mt5Positions = data.positions || [];
+    if (!Array.isArray(data.positions)) {
+        log('⚠️ Réponse positions sans tableau valide; aucune clôture déduite.', 'warn', 'j-logs');
+        return;
+    }
+    state.mt5Positions = data.positions;
     const mt5Tickets = new Set();
     for (const pos of state.mt5Positions) {
         mt5Tickets.add(pos.ticket);
@@ -688,7 +692,7 @@ function updateMT5AccountDisplay() {
 }
 function canOpenOrder(symbolCode, symbolMT5, setupId) {
     if (setupId && isCached(setupId)) return { ok:false, reason:"SETUP_DUPLICATE", detail:setupId };
-    const local = state.trades.find(t => (t.symbol === symbolCode || t.mt5Symbol === symbolMT5) && (t.status === 'open' || t.status === 'sent' || t.status === 'pending' || t.status === 'validating' || t.status === 'submitted'));
+    const local = state.trades.find(t => (t.symbol === symbolCode || t.mt5Symbol === symbolMT5) && (t.status === 'open' || t.status === 'sent' || t.status === 'pending' || t.status === 'validating' || t.status === 'submitted' || t.status === 'uncertain'));
     if (local) return { ok: false, reason: 'POSITION_LOCAL_OPEN', detail: '#' + (local.ticket || 'pending') };
     const mt5Pos = state.mt5Positions.find(p => p.symbol === symbolMT5);
     if (mt5Pos) return { ok: false, reason: 'MT5_POSITION_EXISTS', detail: '#' + mt5Pos.ticket };
@@ -708,7 +712,7 @@ function addTrade(trade) {
     return trade;
 }
 function updateTrade(id, updates) { const idx = state.trades.findIndex(t => t.id === id); if (idx < 0) return; state.trades[idx] = { ...state.trades[idx], ...updates }; saveTrades(); renderJournal(); }
-function getOpenTrades() { return state.trades.filter(t => ['open','sent','pending','validating','submitted'].includes(t.status)); }
+function getOpenTrades() { return state.trades.filter(t => ['open','sent','pending','validating','submitted','uncertain'].includes(t.status)); }
 function getClosedTrades() { return state.trades.filter(t => t.status === 'closed' || t.status === 'rejected'); }
 async function notifyTelegram(text) {
     const token = $('cfg-tg-token').value.trim(); const chatId = $('cfg-tg-chatid').value.trim();
@@ -739,7 +743,7 @@ function startTracking() { if (state.trackingInterval) return; state.trackingInt
 function stopTracking() { if (state.trackingInterval) { clearInterval(state.trackingInterval); state.trackingInterval = null; } }
 function trackLoop() {
     expireStaleReservations();
-    const openTrades = state.trades.filter(t => ['open','sent','submitted'].includes(t.status));
+    const openTrades = state.trades.filter(t => ['open','sent','submitted','uncertain'].includes(t.status));
     if (openTrades.length === 0 || !state.mt5Connected) return;
     const symbolsToTick = new Set();
     for (const trade of openTrades) { const symMT5 = trade.mt5Symbol || trade.symbol; if (symMT5) symbolsToTick.add(symMT5); }
@@ -760,15 +764,272 @@ function computeTradeProgress(trade, currentPrice) {
     return result;
 }
 </script>
-</div>
-// ═══ FIX PRINCIPAL : demander le tick en temps réel si absent du cache ═══
-let tick = getTick(sym.mt5);
-if(!tick || !Number.isFinite(tick.bid) || !Number.isFinite(tick.ask)){
-    try{
-        log('📡 Récupération tick ' + sym.display + '…','info','scan-logs');
-        tick = await requestTick(sym.mt5);   // ← DEMANDE RÉELLE AU BRIDGE
-        ...
-    <script>
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// COUCHE DE CALCUL RESTAURÉE — normalisation, stratégie, scanner, risque
+// Le scanner produit des signaux; l'envoi d'ordres reste manuel.
+// ═══════════════════════════════════════════════════════════════════
+function normalizeCandles(raw) {
+    if (!Array.isArray(raw)) return [];
+    return raw.map(c => ({
+        time: Number(c.time ?? c.timestamp ?? c.date ?? 0),
+        open: Number(c.open ?? c.o),
+        high: Number(c.high ?? c.h),
+        low: Number(c.low ?? c.l),
+        close: Number(c.close ?? c.c),
+        volume: Number(c.volume ?? c.tick_volume ?? c.v ?? 0)
+    })).filter(c => [c.open,c.high,c.low,c.close].every(Number.isFinite) &&
+        c.high >= c.low && c.high >= Math.max(c.open,c.close) &&
+        c.low <= Math.min(c.open,c.close));
+}
+function calculateATR(candles, period = 14) {
+    const cs = normalizeCandles(candles);
+    if (cs.length < period + 1) return [];
+    const tr = [];
+    for (let i=1;i<cs.length;i++) {
+        tr.push(Math.max(cs[i].high-cs[i].low,
+            Math.abs(cs[i].high-cs[i-1].close),
+            Math.abs(cs[i].low-cs[i-1].close)));
+    }
+    const out = [];
+    let sum = tr.slice(0,period).reduce((a,b)=>a+b,0);
+    out[period] = sum/period;
+    for (let i=period;i<tr.length;i++) out[i+1] = (out[i]* (period-1) + tr[i])/period;
+    return out.filter(Number.isFinite);
+}
+function getTick(symbol) { return state.trackingTicks.get(symbol) || null; }
+function ema(values, period) {
+    if (!values.length) return [];
+    const k=2/(period+1), out=[];
+    let value=values[0]; out.push(value);
+    for(let i=1;i<values.length;i++){ value=values[i]*k+value*(1-k); out.push(value); }
+    return out;
+}
+function candleDirection(c) { return c.close > c.open ? 'buy' : c.close < c.open ? 'sell' : 'flat'; }
+const STRATEGIES = [
+    {id:'ema-trend', name:'Stratégie EMA Trend', description:'EMA 20/50 + clôture'},
+    {id:'breakout', name:'Stratégie Breakout', description:'Cassure du range précédent'},
+    {id:'momentum', name:'Stratégie Momentum', description:'Impulsion et clôture'},
+    {id:'pullback', name:'Stratégie Pullback', description:'Retour vers EMA 20'},
+    {id:'structure', name:'Stratégie Structure', description:'Cassure de structure récente'}
+];
+function strategySignal(cs, i, strategy) {
+    if (i < 55) return null;
+    const closes=cs.slice(0,i+1).map(c=>c.close);
+    const e20=ema(closes,20), e50=ema(closes,50);
+    const c=cs[i], prev=cs[i-1], atrs=calculateATR(cs.slice(0,i+1),14);
+    const atr=atrs[atrs.length-1];
+    if(!Number.isFinite(atr)||atr<=0) return null;
+    let dir=null;
+    if(strategy.id==='ema-trend') {
+        if(e20[i]>e50[i] && c.close>e20[i] && c.close>prev.high) dir='buy';
+        if(e20[i]<e50[i] && c.close<e20[i] && c.close<prev.low) dir='sell';
+    } else if(strategy.id==='breakout') {
+        const range=cs.slice(i-20,i);
+        if(c.close>Math.max(...range.map(x=>x.high))) dir='buy';
+        if(c.close<Math.min(...range.map(x=>x.low))) dir='sell';
+    } else if(strategy.id==='momentum') {
+        const body=Math.abs(c.close-c.open);
+        if(c.close>c.open && body>=atr*0.8 && c.close>prev.close) dir='buy';
+        if(c.close<c.open && body>=atr*0.8 && c.close<prev.close) dir='sell';
+    } else if(strategy.id==='pullback') {
+        if(e20[i]>e50[i] && c.low<=e20[i] && c.close>e20[i] && c.close>c.open) dir='buy';
+        if(e20[i]<e50[i] && c.high>=e20[i] && c.close<e20[i] && c.close<c.open) dir='sell';
+    } else if(strategy.id==='structure') {
+        const range=cs.slice(i-10,i);
+        if(c.close>Math.max(...range.map(x=>x.high)) && e20[i]>e50[i]) dir='buy';
+        if(c.close<Math.min(...range.map(x=>x.low)) && e20[i]<e50[i]) dir='sell';
+    }
+    return dir ? {direction:dir, atr, entry:c.close, sl:dir==='buy'?c.close-atr: c.close+atr,
+        tp:dir==='buy'?c.close+atr*3:c.close-atr*3, index:i} : null;
+}
+function backtestStrategy(cs, strategy) {
+    const trades=[]; const start=Math.max(60, Math.floor(cs.length*0.3));
+    for(let i=start;i<cs.length-1;i++) {
+        const sig=strategySignal(cs,i,strategy); if(!sig) continue;
+        let result=null;
+        for(let j=i+1;j<Math.min(cs.length,i+80);j++) {
+            const c=cs[j];
+            const hitSL=sig.direction==='buy'?c.low<=sig.sl:c.high>=sig.sl;
+            const hitTP=sig.direction==='buy'?c.high>=sig.tp:c.low<=sig.tp;
+            if(hitSL && hitTP){ result=-1; break; } // conservative: SL first if both in same candle
+            if(hitSL){result=-1;break;}
+            if(hitTP){result=3;break;}
+        }
+        if(result!==null) trades.push(result);
+        i += 2; // limite le chevauchement des signaux
+    }
+    const wins=trades.filter(x=>x>0).length, losses=trades.filter(x=>x<0).length;
+    const grossWin=trades.filter(x=>x>0).reduce((a,b)=>a+b,0);
+    const grossLoss=Math.abs(trades.filter(x=>x<0).reduce((a,b)=>a+b,0));
+    return {trades:trades.length, wr:(wins+losses)?Math.round(wins/(wins+losses)*100):0,
+        pf:grossLoss?Number((grossWin/grossLoss).toFixed(2)):(grossWin?99:0)};
+}
+function trendFor(cs) {
+    if(!cs || cs.length<55) return 'neutral';
+    const closes=cs.map(c=>c.close), a=ema(closes,20), b=ema(closes,50);
+    const i=closes.length-1;
+    return a[i]>b[i] && closes[i]>a[i] ? 'bullish' :
+        a[i]<b[i] && closes[i]<a[i] ? 'bearish' : 'neutral';
+}
+async function analyzeMultiTF(symbol) {
+    const frames={M5:120,H1:160,H4:160,D1:120}, result={};
+    for(const [tf,count] of Object.entries(frames)) {
+        const cs=await requestCandles(symbol,tf,count);
+        if(cs.length<70){ result[tf]=null; continue; }
+        const stratResults={};
+        for(const st of STRATEGIES) stratResults[st.id]=backtestStrategy(cs,st);
+        const ranked=STRATEGIES.map(st=>({st,stats:stratResults[st.id]}))
+            .filter(x=>x.stats.trades>=10).sort((a,b)=>(b.stats.pf-a.stats.pf)||(b.stats.wr-a.stats.wr));
+        const best=ranked[0] || {st:STRATEGIES[0],stats:{wr:0,pf:0,trades:0}};
+        const latest=STRATEGIES.map(st=>({st,sig:strategySignal(cs,cs.length-1,st),stats:stratResults[st.id]}))
+            .filter(x=>x.sig).sort((a,b)=>(b.stats.pf-a.stats.pf)||(b.stats.wr-a.stats.wr))[0];
+        result[tf]={candles:cs, trend:trendFor(cs), bestWR:best.stats.wr, bestPF:best.stats.pf,
+            bestTrades:best.stats.trades, stratResults, setup:latest?{...latest.sig,hasSignal:true,strategyId:latest.st.id,
+            zone:'EMA/Structure',trend:trendFor(cs),strategy:latest.st.name}: {hasSignal:false}};
+    }
+    // Filtre directionnel H4 + H1 pour les déclenchements M5.
+    if(result.M5 && result.M5.setup && result.M5.setup.hasSignal && CFG.REQUIRE_H4_H1_ALIGNMENT) {
+        const h4=result.H4 && result.H4.trend, h1=result.H1 && result.H1.trend, dir=result.M5.setup.direction;
+        if(!((dir==='buy' && h4==='bullish' && h1==='bullish') ||
+             (dir==='sell' && h4==='bearish' && h1==='bearish'))) result.M5.setup={hasSignal:false,reason:'H4/H1 non alignés'};
+    }
+    return result;
+}
+function calculateRiskLot(params) {
+    const {riskUSD,entry,sl,point,tickValue,tickSize,volumeMin,volumeMax,volumeStep}=params;
+    if (![riskUSD,entry,sl,point,tickValue,tickSize,volumeMin,volumeMax,volumeStep].every(Number.isFinite) ||
+        riskUSD<=0 || point<=0 || tickValue<=0 || tickSize<=0 || volumeMin<=0 || volumeMax<volumeMin || volumeStep<=0) {
+        throw new Error('Métadonnées de cotation/volume invalides; lot non calculable.');
+    }
+    const distance=Math.abs(entry-sl);
+    if(!Number.isFinite(distance)||distance<=0) throw new Error('Distance SL invalide.');
+    const points=distance/point;
+    const valuePerPointPerLot=tickValue*(point/tickSize);
+    const riskPerLot=points*valuePerPointPerLot;
+    if(!Number.isFinite(riskPerLot)||riskPerLot<=0) throw new Error('Valeur du risque par lot invalide.');
+    const raw=riskUSD/riskPerLot;
+    const stepped=Math.floor((raw+1e-10)/volumeStep)*volumeStep;
+    // Ne jamais imposer le lot minimum si celui-ci dépasse le budget de risque.
+    if(stepped+1e-10<volumeMin) {
+        const minRisk=riskPerLot*volumeMin;
+        throw new Error('Lot minimum trop risqué: risque estimé '+minRisk.toFixed(2)+' (budget '+riskUSD.toFixed(2)+').');
+    }
+    const lot=Math.min(volumeMax,stepped);
+    const precision=Math.min(8,Math.max(0,((String(volumeStep).split('.')[1]||'').length)));
+    return {lot:Number(lot.toFixed(precision)),riskPerLot,riskActual:riskPerLot*lot,slPoints:points};
+}
+function getRiskSettings() {
+    const daily=Math.max(0,Number($('risk-daily').value)||50);
+    const exposure=Math.max(0,Number($('risk-exposure').value)||200);
+    const maxpos=Math.max(1,Math.floor(Number($('scan-maxpos').value)||5));
+    return {daily,exposure,maxpos};
+}
+function checkRiskGuard(config=getConfig()) {
+    const settings=getRiskSettings(), today=new Date(); today.setHours(0,0,0,0);
+    const closedToday=state.trades.filter(t=>t.status==='closed' && (t.closeTime||0)>=today.getTime());
+    const dailyPnl=closedToday.reduce((sum,t)=>sum+(Number(t.profit)||0),0);
+    const open=getOpenTrades();
+    const exposure=open.reduce((sum,t)=>sum+(Number(t.riskUSD)||0),0);
+    let reason='';
+    if(state.killSwitch) reason='KILL SWITCH';
+    else if(dailyPnl <= -settings.daily) reason='LIMITE JOURNALIÈRE';
+    else if(exposure >= settings.exposure) reason='EXPOSITION MAX';
+    else if(open.length >= settings.maxpos) reason='MAX POSITIONS';
+    return {ok:!reason,reason,dailyPnl,exposure,openCount:open.length};
+}
+function releaseRisk(requestId) { state.riskReservations.delete(requestId); }
+function expireStaleReservations() {
+    const cutoff=Date.now()-CFG.MAX_PENDING_AGE_MS;
+    for(const [requestId,tradeId] of state.pendingOrders) {
+        const t=state.trades.find(x=>x.id===tradeId);
+        if(t && t.createdAt<cutoff && ['validating','sent','submitted'].includes(t.status)) {
+            // Ne pas considérer un ordre comme rejeté automatiquement: le serveur peut l'avoir exécuté.
+            updateTrade(tradeId,{status:'uncertain',error:'Réponse MT5 en retard — vérifier les positions avant toute nouvelle tentative.'});
+            state.pendingOrders.delete(requestId); releaseRisk(requestId);
+            log('⚠️ Ordre sans réponse: vérification MT5 nécessaire ('+(t.mt5Symbol||t.symbol)+')','warn','j-logs');
+        }
+    }
+}
+function renderFunnel() {
+    const el=$('scan-funnel'); if(!el)return;
+    const f=state.funnel;
+    const rows=[['Instruments examinés',f.total],['Données valides',f.dataOK],['Signaux trouvés',f.hybridOK],['Bloqués par le risque',f.blocked],['Ordres envoyés',f.ordersSent],['Ordres exécutés',f.ordersExecuted]];
+    el.innerHTML=rows.map(([name,n])=>'<div class="funnel"><span class="step">'+escapeHtml(name)+'</span><span class="count">'+Number(n||0)+'</span></div>').join('');
+}
+function renderSignals() {
+    const el=$('scan-signals-list'); if(!el)return;
+    el.innerHTML=state.signals.length?state.signals.slice(0,20).map(s=>
+        '<div class="trade-card pending"><div class="trade-header"><span class="trade-symbol">'+escapeHtml(s.symbol)+'</span><span class="trade-badge '+(s.direction==='buy'?'buy':'sell')+'">'+escapeHtml(String(s.direction||'').toUpperCase())+'</span></div><div class="trade-info"><div><div class="label">TF</div><div class="value">'+escapeHtml(s.timeframe||'M5')+'</div></div><div><div class="label">Entrée</div><div class="value">'+Number(s.entry).toPrecision(7)+'</div></div><div><div class="label">SL</div><div class="value">'+Number(s.sl).toPrecision(7)+'</div></div><div><div class="label">TP</div><div class="value">'+Number(s.tp).toPrecision(7)+'</div></div></div><div class="trade-footer"><span>'+new Date(s.time||Date.now()).toLocaleString('fr-FR')+'</span><span>'+escapeHtml(s.strategy||'Signal')+'</span></div></div>').join(''):'<div class="empty">Aucun signal récent</div>';
+}
+function renderScannerStats() {
+    const el=$('scanner-state'); if(el)el.textContent=state.scannerActive?'▶ Actif':'⏸ Arrêté';
+    const next=$('scanner-next'); if(next)next.textContent=state.nextScanAt?formatDuration(Math.max(0,state.nextScanAt-Date.now())):'—';
+    const sig=$('scanner-signals'); if(sig)sig.textContent=state.signals.length;
+    const ord=$('scanner-orders'); if(ord)ord.textContent=state.funnel.ordersSent;
+}
+function renderTop5() {
+    const el=$('top5-container'); if(!el)return;
+    const top=state.top5Setups.slice(0,5);
+    el.innerHTML=top.length?top.map((s,i)=>'<div class="top5-item" style="border-left-color:'+(s.direction==='buy'?'#16a34a':'#dc2626')+'"><div class="top5-rank">#'+(i+1)+'</div><div><strong>'+escapeHtml(s.symbol)+' · '+escapeHtml(s.direction.toUpperCase())+'</strong><div class="top5-details">'+escapeHtml(s.strategy||'')+' · WR historique '+s.wr+'% · PF '+s.pf+'</div></div><div class="top5-score">'+s.score+'</div></div>').join(''):'<div class="empty">Aucun setup validé</div>';
+}
+let scannerCursor=0;
+async function scanUniverseOnce() {
+    if(state.scanning || !state.scannerActive || !state.mt5Connected)return;
+    state.scanning=true; state.funnel={total:0,dataOK:0,strat1OK:0,strat2OK:0,strat3OK:0,strat4OK:0,strat5OK:0,unifiedOK:0,hybridOK:0,riskOK:0,blocked:0,ordersSent:state.funnel.ordersSent,ordersExecuted:state.funnel.ordersExecuted};
+    const universe=UNIVERSES[state.universe]||UNIVERSES.deriv;
+    // Lot de 8 symboles par cycle pour limiter la charge du bridge MT5.
+    const batch=[]; for(let n=0;n<Math.min(8,universe.indices.length);n++) batch.push(universe.indices[(scannerCursor+n)%universe.indices.length]);
+    scannerCursor=(scannerCursor+batch.length)%Math.max(1,universe.indices.length);
+    const found=[];
+    try {
+        for(const sym of batch) {
+            if(!state.scannerActive)break;
+            state.funnel.total++;
+            try {
+                const mtf=await analyzeMultiTF(sym.mt5);
+                const m5=mtf.M5, h1=mtf.H1, h4=mtf.H4;
+                if(!m5||!h1||!h4){continue;} state.funnel.dataOK++;
+                const setup=m5.setup;
+                if(!setup||!setup.hasSignal)continue;
+                if(setup.direction==='buy' && !(h1.trend==='bullish'&&h4.trend==='bullish'))continue;
+                if(setup.direction==='sell' && !(h1.trend==='bearish'&&h4.trend==='bearish'))continue;
+                const quality=m5.stratResults[setup.strategyId]||null;
+                const strategyName=setup.strategy||'Structure/EMA';
+                const stats=STRATEGIES.map(st=>m5.stratResults[st.id]).filter(x=>x&&x.trades>=10).sort((a,b)=>b.pf-a.pf||b.wr-a.wr)[0];
+                if(!stats||stats.trades<10||stats.pf<1.1)continue;
+                const setupId=[sym.mt5,setup.direction,Math.floor(Date.now()/CFG.SCAN_INTERVAL_MS)].join('_');
+                if(isCached(setupId))continue;
+                const score=Math.min(100,Math.round(stats.wr*0.6+Math.min(stats.pf,3)*13));
+                const item={symbol:sym.mt5,symbolCode:sym.code,mt5Symbol:sym.mt5,direction:setup.direction,entry:setup.entry,sl:setup.sl,tp:setup.tp,wr:stats.wr,pf:stats.pf,score,strategy:strategyName,timeframe:'M5',time:Date.now(),setupId};
+                found.push(item); state.funnel.hybridOK++;
+                state.signals.unshift(item); cacheSetup(setupId);
+            } catch(err){log('⚠️ '+sym.display+': '+err.message,'warn','scan-logs');}
+            renderFunnel();
+        }
+        state.signals=state.signals.slice(0,50); saveSignals();
+        state.top5Setups=[...found].sort((a,b)=>b.score-a.score).slice(0,5);
+        renderSignals();renderTop5();renderScannerStats();
+        log('🔎 Cycle scanner terminé: '+batch.length+' symbole(s), '+found.length+' signal(aux). Aucun ordre automatique envoyé.','success','scan-logs');
+    } finally {state.scanning=false;}
+}
+function startScanner() {
+    if(state.scannerActive)return;
+    if(!state.mt5Connected){log('❌ Connectez MT5 avant de démarrer le scanner','error','scan-logs');return;}
+    state.scannerActive=true;localStorage.setItem(STORAGE.scanner,'1');
+    $('btn-scanner-toggle').textContent='⏹ Arrêter';state.nextScanAt=Date.now()+CFG.SCAN_INTERVAL_MS;
+    renderScannerStats();scanUniverseOnce();
+    state.scannerTimer=setInterval(()=>{state.nextScanAt=Date.now()+CFG.SCAN_INTERVAL_MS;scanUniverseOnce();},CFG.SCAN_INTERVAL_MS);
+    state.countdownTimer=setInterval(renderScannerStats,1000);
+}
+function stopScanner() {
+    state.scannerActive=false;localStorage.setItem(STORAGE.scanner,'0');
+    if(state.scannerTimer)clearInterval(state.scannerTimer);if(state.countdownTimer)clearInterval(state.countdownTimer);
+    state.scannerTimer=null;state.countdownTimer=null;state.nextScanAt=null;
+    $('btn-scanner-toggle').textContent='▶️ Démarrer';renderScannerStats();
+}
+</script>
+<script>
 // ═══════════════════════════════════════════════════════════════════
 // PARTIE 4/4 — ANALYSE + JOURNAL + INIT
 // ═══════════════════════════════════════════════════════════════════
@@ -813,17 +1074,23 @@ async function runAnalyse() {
         const mainData = mtf[tf];
         if (!mainData) { log('⏸ Pas de données ' + tf, 'warn'); return; }
         const setup = mainData.setup;
-        if (setup && setup.hasSignal) {
-            const validTfs = Object.entries(mtf).filter(([t, r]) => r !== null && r.bestWR >= 40 && r.bestPF >= 0.5);
-            const score = Math.round((mainData.bestWR + mainData.bestPF * 10) / 2);
-            const hybridScore = Math.min(100, score);
+        const h1Trend = mtf.H1 && mtf.H1.trend, h4Trend = mtf.H4 && mtf.H4.trend;
+        const directionAligned = setup && setup.direction === 'buy'
+            ? h1Trend === 'bullish' && h4Trend === 'bullish'
+            : setup && setup.direction === 'sell'
+                ? h1Trend === 'bearish' && h4Trend === 'bearish' : false;
+        if (setup && setup.hasSignal && directionAligned) {
+            const validTfs = Object.entries(mtf).filter(([t, r]) => r !== null && r.bestTrades >= 10 && r.bestPF >= 1.0);
+            const score = Math.round(mainData.bestWR * 0.6 + Math.min(mainData.bestPF, 3) * 13);
+            const hybridScore = Math.max(0, Math.min(100, score));
             const symObj = UNIVERSES[state.universe].indices.find(s => s.mt5 === symbolMT5);
             const symCode = symObj ? symObj.code : symbolMT5;
             window._currentAnalyseSignal = { symbolCode: symCode, symbolMT5, direction: setup.direction, entry: setup.entry, sl: setup.sl, tp: setup.tp, zone: setup.zone, trend: setup.trend, hybridScore, timeframe: tf };
-            $('analyse-signal').innerHTML = '<div class="trade-card pending" style="border-left-color:' + (setup.direction === 'buy' ? '#16a34a' : '#dc2626') + ';"><div class="trade-header"><span class="trade-symbol">' + escapeHtml(symbolMT5) + '</span><span class="trade-badge ' + setup.direction + '">' + setup.direction.toUpperCase() + '</span></div><div class="trade-info"><div><div class="label">Entry</div><div class="value">' + setup.entry.toFixed(5) + '</div></div><div><div class="label">SL</div><div class="value" style="color:#dc2626;">' + setup.sl.toFixed(5) + '</div></div><div><div class="label">TP</div><div class="value" style="color:#16a34a;">' + setup.tp.toFixed(5) + '</div></div><div><div class="label">RR</div><div class="value">1:3</div></div></div><div class="trade-info" style="margin-top:0.3rem;"><div><div class="label">Zone</div><div class="value">' + setup.zone + '</div></div><div><div class="label">Trend</div><div class="value">' + setup.trend + '</div></div><div><div class="label">Score</div><div class="value" style="color:#a855f7;">' + hybridScore + '/100</div></div><div><div class="label">TF</div><div class="value">' + tf + '</div></div></div><div style="font-size:0.68rem;color:#06b6d4;margin-top:0.4rem;">✅ ' + validTfs.length + '/4 TF valides</div><button class="primary" id="btn-send-analysis-order" style="width:100%;margin-top:0.5rem;">📤 Envoyer cet ordre à MT5</button></div>';
+            $('analyse-signal').innerHTML = '<div class="trade-card pending" style="border-left-color:' + (setup.direction === 'buy' ? '#16a34a' : '#dc2626') + ';"><div class="trade-header"><span class="trade-symbol">' + escapeHtml(symbolMT5) + '</span><span class="trade-badge ' + setup.direction + '">' + setup.direction.toUpperCase() + '</span></div><div class="trade-info"><div><div class="label">Entry</div><div class="value">' + setup.entry.toFixed(5) + '</div></div><div><div class="label">SL</div><div class="value" style="color:#dc2626;">' + setup.sl.toFixed(5) + '</div></div><div><div class="label">TP</div><div class="value" style="color:#16a34a;">' + setup.tp.toFixed(5) + '</div></div><div><div class="label">RR</div><div class="value">1:' + (Math.abs(setup.tp-setup.entry)/Math.max(1e-12,Math.abs(setup.entry-setup.sl))).toFixed(2) + '</div></div></div><div class="trade-info" style="margin-top:0.3rem;"><div><div class="label">Zone</div><div class="value">' + setup.zone + '</div></div><div><div class="label">Trend</div><div class="value">' + setup.trend + '</div></div><div><div class="label">Score</div><div class="value" style="color:#a855f7;">' + hybridScore + '/100</div></div><div><div class="label">TF</div><div class="value">' + tf + '</div></div></div><div style="font-size:0.68rem;color:#06b6d4;margin-top:0.4rem;">✅ ' + validTfs.length + '/4 TF valides</div><button class="primary" id="btn-send-analysis-order" style="width:100%;margin-top:0.5rem;">📤 Envoyer cet ordre à MT5</button></div>';
             log('🎯 Signal SMC ' + setup.direction + ' ' + symbolMT5 + ' ' + tf, 'signal');
         } else {
-            $('analyse-signal').innerHTML = '<div class="empty">⏸ Pas de signal SMC sur ' + escapeHtml(symbolMT5) + ' ' + tf + '</div>';
+            const reason = setup && setup.hasSignal ? 'Signal rejeté: H4 et H1 ne sont pas alignés.' : 'Pas de signal SMC';
+            $('analyse-signal').innerHTML = '<div class="empty">⏸ ' + reason + ' sur ' + escapeHtml(symbolMT5) + ' ' + tf + '</div>';
             log('⏸ Pas de signal ' + symbolMT5 + ' ' + tf, 'warn');
         }
         const timeframes = ['M5', 'H1', 'H4', 'D1'];
@@ -937,10 +1204,10 @@ function renderStats() {
 }
 function renderRiskGuard() {
     const config = getConfig(); const r = checkRiskGuard(config);
+    $('rg-daily').textContent = (r.dailyPnl >= 0 ? '+' : '') + r.dailyPnl.toFixed(2) + '$';
+    $('rg-daily').className = 'stat-value ' + (r.dailyPnl >= 0 ? 'green' : 'red');
+    $('rg-exposure').textContent = r.exposure.toFixed(2) + '$';
     if (r.ok) {
-        $('rg-daily').textContent = (r.dailyPnl >= 0 ? '+' : '') + r.dailyPnl.toFixed(2) + '$';
-        $('rg-daily').className = 'stat-value ' + (r.dailyPnl >= 0 ? 'green' : 'red');
-        $('rg-exposure').textContent = r.exposure.toFixed(2) + '$';
         $('rg-status').textContent = '✅ OK'; $('rg-status').className = 'stat-value green';
     } else { $('rg-status').textContent = '❌ ' + r.reason; $('rg-status').className = 'stat-value red'; }
 }
@@ -982,47 +1249,53 @@ function bindEvents() {
         const sig = window._currentAnalyseSignal;
         if (!sig) { log('❌ Aucun signal à envoyer', 'error', 'logs'); return; }
         if (!state.mt5Connected) { log('❌ Bridge MT5 non connecté', 'error', 'logs'); return; }
-        log('🧪 Envoi ordre Analyse sur ' + sig.symbolMT5, 'info', 'logs');
+        const guard = checkRiskGuard();
+        if (!guard.ok) { log('🛡️ Ordre bloqué: ' + guard.reason, 'error', 'logs'); return; }
+        const duplicate = canOpenOrder(sig.symbolCode || sig.symbolMT5, sig.symbolMT5);
+        if (!duplicate.ok) { log('🛑 Ordre bloqué: ' + duplicate.reason + ' (' + duplicate.detail + ')', 'warn', 'logs'); return; }
+        if (state.orderSubmissionActive) { log('⏳ Un autre ordre est en cours de validation.', 'warn', 'logs'); return; }
+        state.orderSubmissionActive = true;
+        log('🧪 Vérification ordre Analyse sur ' + sig.symbolMT5, 'info', 'logs');
         try {
             const tick = await requestTick(sig.symbolMT5);
-            const ask = parseFloat(tick.ask), bid = parseFloat(tick.bid);
-            const point = parseFloat(tick.point), tickValue = parseFloat(tick.tick_value);
-            const tickSize = parseFloat(tick.tick_size), digits = parseInt(tick.digits);
-            const vmin = parseFloat(tick.volume_min) || 0.01;
-            const vmax = parseFloat(tick.volume_max) || 100;
-            const vstep = parseFloat(tick.volume_step) || 0.01;
-            if (!Number.isFinite(ask) || !Number.isFinite(bid)) { log('❌ Prix invalide', 'error', 'logs'); return; }
-            const candles = await requestCandles(sig.symbolMT5, 'M5', 100);
-            const atrArr = calculateATR(candles, 14);
-            const atr = atrArr[atrArr.length - 1];
-            if (!atr || atr <= 0) { log('❌ ATR invalide', 'error', 'logs'); return; }
+            const ask = Number(tick.ask), bid = Number(tick.bid);
+            const point = Number(tick.point), tickValue = Number(tick.tick_value);
+            const tickSize = Number(tick.tick_size), digits = Number(tick.digits);
+            const vmin = Number(tick.volume_min), vmax = Number(tick.volume_max), vstep = Number(tick.volume_step);
+            if (![ask,bid].every(Number.isFinite) || ask<=0 || bid<=0 || ask<bid) throw new Error('Prix bid/ask invalides.');
+            if (![sig.entry,sig.sl,sig.tp].every(Number.isFinite)) throw new Error('Niveaux du signal invalides.');
             const direction = sig.direction;
+            if (!['buy','sell'].includes(direction)) throw new Error('Direction du signal invalide.');
             const entry = direction === 'buy' ? ask : bid;
-            const sl = direction === 'buy' ? entry - atr * 1.0 : entry + atr * 1.0;
-            const tp = direction === 'buy' ? entry + atr * 3.0 : entry - atr * 3.0;
-            const riskUSD = state.account && state.account.balance ? (state.account.balance * CFG.RISK_PCT / 100) : 5;
-            const slDistance = Math.abs(entry - sl);
-            const slPoints = slDistance / point;
-            const valuePerPointPerLot = tickValue * (point / tickSize);
-            const riskPerLot = slPoints * valuePerPointPerLot;
-            let lot = riskUSD / riskPerLot;
-            lot = Math.round(lot / vstep) * vstep;
-            lot = Math.max(vmin, Math.min(vmax, lot));
-            lot = parseFloat(lot.toFixed(2));
-            log('🎯 ' + direction.toUpperCase() + ' ' + lot + ' lots @ ' + entry.toFixed(digits), 'signal', 'logs');
-            log('   SL=' + sl.toFixed(digits) + ' | TP=' + tp.toFixed(digits), 'info', 'logs');
-            log('   Risque : ' + (riskPerLot * lot).toFixed(2) + ' USD', 'info', 'logs');
-            const requestId = 'ana_' + Date.now();
-            const mult = Math.pow(10, digits);
-            const e = Math.round(entry * mult) / mult;
-            const s = Math.round(sl * mult) / mult;
-            const t = Math.round(tp * mult) / mult;
-            const trade = addTrade({ symbol: sig.symbolCode || sig.symbolMT5, mt5Symbol: sig.symbolMT5, direction: direction, riskUSD: riskUSD, lot: lot, strategyName: 'ANALYSE MANUELLE', hybridScore: sig.hybridScore, entryPrice: e, slPrice: s, tpPrice: t, status: 'validating', signalData: { source: 'analysis-button' } });
-            state.pendingOrders.set(requestId, trade.id);
-            const sent = sendMT5({ type: 'open_order', request_id: requestId, order: { symbol: sig.symbolMT5, direction: direction, risk_usd: riskUSD, entry_price: e, sl_price: s, tp_price: t, sl_points: Math.round(slPoints), comment: 'SMC-ANALYSE-' + sig.symbolMT5 } });
-            if (sent) log('📤 Ordre envoyé. Attente MT5…', 'success', 'logs');
-            else { log('❌ Échec de l\'envoi', 'error', 'logs'); updateTrade(trade.id, { status: 'rejected', error: 'Send failed' }); }
-        } catch (err) { log('❌ Erreur : ' + err.message, 'error', 'logs'); }
+            const initialRisk = Math.abs(sig.entry - sig.sl);
+            const targetDistance = Math.abs(sig.tp - sig.entry);
+            if (initialRisk <= 0 || targetDistance <= 0) throw new Error('Distances SL/TP invalides.');
+            const rr = targetDistance / initialRisk;
+            if (rr < CFG.MIN_RR) throw new Error('RR inférieur au minimum autorisé (' + CFG.MIN_RR + ').');
+            const sl = direction === 'buy' ? entry - initialRisk : entry + initialRisk;
+            const tp = direction === 'buy' ? entry + targetDistance : entry - targetDistance;
+            if ((direction === 'buy' && !(sl < entry && tp > entry)) ||
+                (direction === 'sell' && !(sl > entry && tp < entry))) throw new Error('Cohérence direction/SL/TP invalide.');
+            const riskUSD = state.account && state.account.balance > 0 ? state.account.balance * CFG.RISK_PCT / 100 : 5;
+            const sizing = calculateRiskLot({riskUSD,entry,sl,point,tickValue,tickSize,volumeMin:vmin,volumeMax:vmax,volumeStep:vstep});
+            const lot = sizing.lot, slPoints = sizing.slPoints;
+            const mult = Math.pow(10, Number.isFinite(digits)?digits:5);
+            const e = Math.round(entry * mult) / mult, s = Math.round(sl * mult) / mult, t = Math.round(tp * mult) / mult;
+            log('🎯 ' + direction.toUpperCase() + ' ' + lot + ' lots @ ' + e.toFixed(Number.isFinite(digits)?digits:5), 'signal', 'logs');
+            log('   SL=' + s.toFixed(Number.isFinite(digits)?digits:5) + ' | TP=' + t.toFixed(Number.isFinite(digits)?digits:5) + ' | RR=' + rr.toFixed(2), 'info', 'logs');
+            log('   Risque estimé : ' + sizing.riskActual.toFixed(2) + ' (budget ' + riskUSD.toFixed(2) + ')', 'info', 'logs');
+            const requestId = 'ana_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+            const trade = addTrade({symbol:sig.symbolCode||sig.symbolMT5,mt5Symbol:sig.symbolMT5,direction,riskUSD:sizing.riskActual,lot,
+                strategyName:'ANALYSE MANUELLE',hybridScore:sig.hybridScore,entryPrice:e,slPrice:s,tpPrice:t,status:'validating',
+                signalData:{source:'analysis-button',signalEntry:sig.entry,signalSL:sig.sl,signalTP:sig.tp}});
+            state.pendingOrders.set(requestId,trade.id);
+            state.riskReservations.set(requestId,sizing.riskActual);
+            const sent = sendMT5({type:'open_order',request_id:requestId,order:{symbol:sig.symbolMT5,direction,risk_usd:sizing.riskActual,
+                volume:lot,entry_price:e,sl_price:s,tp_price:t,sl_points:Math.round(slPoints),comment:'SMC-ANALYSE-'+sig.symbolMT5}});
+            if (sent) { state.funnel.ordersSent++; renderFunnel(); log('📤 Ordre envoyé. Attente MT5…','success','logs'); }
+            else { state.pendingOrders.delete(requestId); releaseRisk(requestId); updateTrade(trade.id,{status:'rejected',error:'Échec de transmission au bridge'}); }
+        } catch (err) { log('❌ Ordre non envoyé : ' + err.message, 'error', 'logs'); }
+        finally { state.orderSubmissionActive = false; }
     };
     document.addEventListener('click', function(e) {
         if (e.target && e.target.id === 'btn-send-analysis-order') {
@@ -1034,56 +1307,41 @@ function bindEvents() {
         const symbolMT5 = $('analyse-symbol').value;
         if (!symbolMT5) { log('❌ Sélectionnez un symbole dans Analyse', 'error', 'cfg-logs'); return; }
         if (!state.mt5Connected) { log('❌ Bridge MT5 non connecté', 'error', 'cfg-logs'); return; }
-        log('🧪 Test ordre 5$ sur ' + symbolMT5, 'info', 'cfg-logs');
-        log('⏳ Récupération du prix et des bougies…', 'info', 'cfg-logs');
+        if(!confirm('ATTENTION : cet ordre de test sera transmis au compte MT5 connecté et peut être exécuté avec de l’argent réel. Continuer ?')) return;
+        if(state.orderSubmissionActive){log('⏳ Un autre ordre est en cours de validation.','warn','cfg-logs');return;}
+        const guard=checkRiskGuard();
+        if(!guard.ok){log('🛡️ Test bloqué: '+guard.reason,'error','cfg-logs');return;}
+        state.orderSubmissionActive=true;
+        const dup=canOpenOrder(symbolMT5,symbolMT5);
+        if(!dup.ok){log('🛑 Test bloqué: une position existe déjà ('+dup.detail+').','warn','cfg-logs');return;}
+        log('🧪 Test ordre plafonné à 5 sur '+symbolMT5,'info','cfg-logs');
         try {
-            const tick = await requestTick(symbolMT5);
-            const ask = parseFloat(tick.ask);
-            const bid = parseFloat(tick.bid);
-            const point = parseFloat(tick.point);
-            const tickValue = parseFloat(tick.tick_value);
-            const tickSize = parseFloat(tick.tick_size);
-            const digits = parseInt(tick.digits);
-            const vmin = parseFloat(tick.volume_min) || 0.01;
-            const vmax = parseFloat(tick.volume_max) || 100;
-            const vstep = parseFloat(tick.volume_step) || 0.01;
-            if (!Number.isFinite(ask) || !Number.isFinite(bid)) { log('❌ Prix invalide reçu', 'error', 'cfg-logs'); return; }
-            log('💰 Prix : bid=' + bid.toFixed(digits) + ' ask=' + ask.toFixed(digits), 'data', 'cfg-logs');
-            const candles = await requestCandles(symbolMT5, 'M5', 100);
-            if (!candles || candles.length < 20) { log('❌ Pas assez de bougies', 'error', 'cfg-logs'); return; }
-            const atrArr = calculateATR(candles, 14);
-            const atr = atrArr[atrArr.length - 1];
-            if (!atr || atr <= 0) { log('❌ ATR invalide', 'error', 'cfg-logs'); return; }
-            log('📊 ATR(14) M5 : ' + atr.toFixed(digits), 'data', 'cfg-logs');
-            const direction = 'buy';
-            const entry = ask;
-            const sl = entry - atr * 1.0;
-            const tp = entry + atr * 3.0;
-            const riskUSD = 5;
-            const slDistance = Math.abs(entry - sl);
-            if (slDistance <= 0) { log('❌ SL invalide', 'error', 'cfg-logs'); return; }
-            const slPoints = slDistance / point;
-            const valuePerPointPerLot = tickValue * (point / tickSize);
-            const riskPerLot = slPoints * valuePerPointPerLot;
-            if (riskPerLot <= 0) { log('❌ Calcul du lot impossible', 'error', 'cfg-logs'); return; }
-            let lot = riskUSD / riskPerLot;
-            lot = Math.round(lot / vstep) * vstep;
-            lot = Math.max(vmin, Math.min(vmax, lot));
-            lot = parseFloat(lot.toFixed(2));
-            log('🎯 Ordre : ' + direction.toUpperCase() + ' ' + lot + ' lots @ ' + entry.toFixed(digits), 'info', 'cfg-logs');
-            log('   SL=' + sl.toFixed(digits) + ' (' + slPoints.toFixed(0) + ' pts) | TP=' + tp.toFixed(digits), 'info', 'cfg-logs');
-            log('   Risque calculé : ' + (riskPerLot * lot).toFixed(2) + ' USD', 'info', 'cfg-logs');
-            const requestId = 'test_' + Date.now();
-            const mult = Math.pow(10, digits);
-            const e = Math.round(entry * mult) / mult;
-            const s = Math.round(sl * mult) / mult;
-            const t = Math.round(tp * mult) / mult;
-            const trade = addTrade({ symbol: symbolMT5, mt5Symbol: symbolMT5, direction: direction, riskUSD: riskUSD, lot: lot, strategyName: 'TEST MANUEL', hybridScore: 100, entryPrice: e, slPrice: s, tpPrice: t, status: 'validating', signalData: { source: 'test-button', comment: 'TEST_5USD' } });
-            state.pendingOrders.set(requestId, trade.id);
-            const sent = sendMT5({ type: 'open_order', request_id: requestId, order: { symbol: symbolMT5, direction: direction, risk_usd: riskUSD, entry_price: e, sl_price: s, tp_price: t, sl_points: Math.round(slPoints), comment: 'TEST_5USD' } });
-            if (sent) log('📤 Ordre envoyé. Attente de la réponse MT5…', 'success', 'cfg-logs');
-            else { log('❌ Échec de l\'envoi', 'error', 'cfg-logs'); updateTrade(trade.id, { status: 'rejected', error: 'Send failed' }); }
-        } catch (err) { log('❌ Erreur : ' + err.message, 'error', 'cfg-logs'); }
+            const tick=await requestTick(symbolMT5);
+            const ask=Number(tick.ask), bid=Number(tick.bid), point=Number(tick.point);
+            const tickValue=Number(tick.tick_value), tickSize=Number(tick.tick_size), digits=Number(tick.digits);
+            if(![ask,bid].every(Number.isFinite)||ask<=0||bid<=0||ask<bid)throw new Error('Prix bid/ask invalides.');
+            const candles=await requestCandles(symbolMT5,'M5',100);
+            if(!candles||candles.length<20)throw new Error('Pas assez de bougies.');
+            const atrArr=calculateATR(candles,14), atr=atrArr[atrArr.length-1];
+            if(!Number.isFinite(atr)||atr<=0)throw new Error('ATR invalide.');
+            const direction='buy', entry=ask, sl=entry-atr, tp=entry+atr*3, riskUSD=5;
+            const vmin=Number(tick.volume_min),vmax=Number(tick.volume_max),vstep=Number(tick.volume_step);
+            const sizing=calculateRiskLot({riskUSD,entry,sl,point,tickValue,tickSize,volumeMin:vmin,volumeMax:vmax,volumeStep:vstep});
+            const lot=sizing.lot, mult=Math.pow(10,Number.isFinite(digits)?digits:5);
+            const e=Math.round(entry*mult)/mult,s=Math.round(sl*mult)/mult,t=Math.round(tp*mult)/mult;
+            log('🎯 TEST BUY '+lot+' lots @ '+e.toFixed(Number.isFinite(digits)?digits:5),'info','cfg-logs');
+            log('SL='+s.toFixed(Number.isFinite(digits)?digits:5)+' | TP='+t.toFixed(Number.isFinite(digits)?digits:5)+' | risque estimé='+sizing.riskActual.toFixed(2),'info','cfg-logs');
+            const requestId='test_'+Date.now()+'_'+Math.floor(Math.random()*1000);
+            const trade=addTrade({symbol:symbolMT5,mt5Symbol:symbolMT5,direction,riskUSD:sizing.riskActual,lot,
+                strategyName:'TEST MANUEL',hybridScore:100,entryPrice:e,slPrice:s,tpPrice:t,status:'validating',
+                signalData:{source:'test-button',comment:'TEST_5USD'}});
+            state.pendingOrders.set(requestId,trade.id);state.riskReservations.set(requestId,sizing.riskActual);
+            const sent=sendMT5({type:'open_order',request_id:requestId,order:{symbol:symbolMT5,direction,risk_usd:sizing.riskActual,
+                volume:lot,entry_price:e,sl_price:s,tp_price:t,sl_points:Math.round(sizing.slPoints),comment:'TEST_5USD'}});
+            if(sent){state.funnel.ordersSent++;renderFunnel();log('📤 Ordre de test envoyé; vérifiez le compte MT5.','success','cfg-logs');}
+            else{state.pendingOrders.delete(requestId);releaseRisk(requestId);updateTrade(trade.id,{status:'rejected',error:'Échec de transmission au bridge'});}
+        } catch(err){log('❌ Test non envoyé : '+err.message,'error','cfg-logs');}
+        finally { state.orderSubmissionActive=false; }
     });
 
     ['risk-daily', 'risk-exposure', 'scan-maxpos'].forEach(id => $(id).addEventListener('change', debounce(saveRisk, 400)));
@@ -1098,13 +1356,13 @@ function init() {
     log('💰 Risque : 1% de la balance (auto via MT5)', 'hybrid');
     log('📊 V11 : H4/H1 direction → M5 trigger + D1 contexte', 'hybrid');
     log('🔒 V11 : anti-doublon setup + réservation risque + état ordre', 'hybrid');
-    window.addEventListener('load', () => { setTimeout(() => { connectMT5(); }, 500); });
-    if (localStorage.getItem(STORAGE.scanner) === '1') { setTimeout(() => { if (state.mt5Connected) startScanner(); }, 3000); }
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js').then((reg) => console.log('✅ SW enregistré')).catch((e) => console.warn('⚠️ SW erreur:', e));
-        });
-    }
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            if ($('cfg-ws-token').value.trim()) connectMT5();
+            else log('ℹ️ Entrez le token du bridge dans Config pour connecter MT5.', 'info', 'cfg-logs');
+        }, 500);
+    });
+    if (localStorage.getItem(STORAGE.scanner) === '1') { localStorage.setItem(STORAGE.scanner, '0'); }
     startTracking();
 }
 init();
